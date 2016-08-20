@@ -1,7 +1,12 @@
 #define pinc A0
 
-int pina = 2, pinb = 3, pind = 4, pine = 5, l1 = 8, l2 = 9, l3 = 10, lpi = 11, lpt = 12, pinf = 13, cron = 600, croff = 560, exton = 640, extoff = 620, intervalcr = 30000;
+int pina = 2, pinb = 3, pind = 4, pine = 5, l1 = 8, l2 = 9, l3 = 10, lpi = 11, lpt = 12, pinf = 13, \
+    cron = 600, croff = 560, exton = 640, extoff = 620, intervalcr = 30000;
+
+// Declare logical switches
 bool a, b, c = false, d, e, f = false, wait1 = false, wait2 = false;
+
+
 unsigned long waituntil1, waituntil2;
 
 void setup() {
@@ -31,54 +36,47 @@ void loop() {
         if(Serial)
                 Serial.println(analogRead(pinc));
 
-
-
+        // Checks the crepuscular thresholds for the corridor
         if (analogRead(pinc) <= croff) {
-
                 if (wait1 == false) {
-                        waituntil1 = millis() + intervalcr;
+                        waituntil1 = millis();
                         wait1=true;
-                } else if (millis() >= waituntil1 && wait1) {
+                } else if (millis() - waituntil1 >= intervalcr && wait1) {
                         c = false;
                         wait1=false;
                 }
-
         } else if (analogRead(pinc) >= cron) {
-
                 if (wait1 == false) {
-                        waituntil1 = millis() + intervalcr;
+                        waituntil1 = millis();
                         wait1=true;
-                } else if (millis() >= waituntil1 && wait1) {
+                } else if (millis() - waituntil1 >= intervalcr && wait1) {
                         c = true;
                         wait1=false;
                 }
         }
 
-
-
-
+        // Checks the crepuscular thresholds for the garden
         if (analogRead(pinc) <= extoff) {
-
                 if (wait2 == false) {
-                        waituntil2 = millis() + 2000;
-                        wait2=true;
-                } else if (millis() >= waituntil2 && wait2) {
+                        waituntil2 = millis();
+                        wait2 = true;
+                } else if (millis() - waituntil2 >= intervalcr && wait2) {
                         f = false;
                         wait2=false;
                 }
 
         } else if (analogRead(pinc) >= exton) {
-
                 if (wait2 == false) {
-                        waituntil2 = millis() + 2000;
+                        waituntil2 = millis();
                         wait2=true;
-                } else if (millis() >= waituntil2 && wait2) {
+                } else if (millis() - waituntil2 >= intervalcr && wait2) {
                         f = true;
                         wait2=false;
                 }
         }
 
 
+        // WARNING: Don't try to understand this
         if (!a || d || (e && !b) || (b && c)) {
                 digitalWrite(l1, HIGH);
         } else { digitalWrite(l1, LOW); }
