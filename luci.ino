@@ -1,7 +1,22 @@
 #define pinc A0
 
-int pina = 2, pinb = 3, pind = 4, pine = 5, l1 = 8, l2 = 9, l3 = 10, lpi = 11, lpt = 12, pinf = 13, \
-    cron = 600, croff = 560, exton = 640, extoff = 620, intervalcr = 30000;
+#define pina 2
+#define pinb 3
+#define pind 4
+#define pine 5
+#define pinf 13
+
+#define l1 8
+#define l2 9
+#define l3 10
+#define lpi 11
+#define lpt 12
+
+#define cron 600
+#define croff 560
+#define exton 640
+#define extoff 620
+#define intervalcr 30000
 
 // Declare logical switches
 bool a, b, c = false, d, e, f = false, wait1 = false, wait2 = false;
