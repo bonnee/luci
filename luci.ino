@@ -22,17 +22,18 @@
 #define lpi 11
 #define lpt 12
 
-// crepuscular on/off
+// crepuscular thresholds for the staircase lights
 #define cron 600
 #define croff 560
 
+// crepuscular thresholds for external lights
 #define exton 640
 #define extoff 620
 
-// interval to wait
+// interval to wait before changing lights state (to debounce the photoresistor)
 #define intervalcr 30000
 
-// Declare logical switches
+// declare logical switches
 bool a, b, c = false, d, e, f = false, wait1 = false, wait2 = false;
 
 unsigned long waitstart1, waitstart2;
@@ -60,7 +61,7 @@ void loop() {
         if(Serial)
                 Serial.println(analogRead(pinc));
 
-        // Checks the crepuscular thresholds for the corridor
+        // checks the crepuscular thresholds for the corridor and "starts" the timer to change state
         if (analogRead(pinc) <= croff) {
                 if (wait1 == false) {
                         waitstart1 = millis();
@@ -79,7 +80,7 @@ void loop() {
                 }
         }
 
-        // Checks the crepuscular thresholds for the garden
+        // checks the crepuscular thresholds for the garden and "starts" the timer to change state
         if (analogRead(pinc) <= extoff) {
                 if (wait2 == false) {
                         waitstart2 = millis();
