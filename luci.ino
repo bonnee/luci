@@ -1,21 +1,35 @@
+/*
+        lights.ino: Internal and external ights control with relay shield
+
+        I wrote this software 4-5 years ago, left it undocumented, and now it is barely readable.
+        I will upgrade this to work with a digital light sensor in the future, and I might end up rewriting a good part of it.
+*/
+
+// photoresistor
 #define pinc A0
 
+// switches
 #define pina 2
 #define pinb 3
 #define pind 4
 #define pine 5
 #define pinf 13
 
+// lights
 #define l1 8
 #define l2 9
 #define l3 10
 #define lpi 11
 #define lpt 12
 
+// crepuscular on/off
 #define cron 600
 #define croff 560
+
 #define exton 640
 #define extoff 620
+
+// interval to wait
 #define intervalcr 30000
 
 // Declare logical switches
