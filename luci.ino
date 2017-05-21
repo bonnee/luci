@@ -1,12 +1,18 @@
 /*
         lights.ino: Internal and external ights control with relay shield
 
-        I wrote this software 4-5 years ago, left it undocumented, and now it is barely readable.
-        I will upgrade this to work with a digital light sensor in the future, and I might end up rewriting a good part of it.
+        Pinout of the TSL2561 sensor:
+            VCC: 3.3v
+            GND: Ground
+            SDA: A5
+            SCL: A4
+
 */
+#include "TSL2561.h"
 
 // photoresistor
-#define pinc A0
+//#define pinc A0
+TSL2561 tsl(TSL2561_ADDR_FLOAT);
 
 // switches
 #define pina 2
@@ -33,94 +39,142 @@
 // interval to wait before changing lights state (to debounce the photoresistor)
 #define intervalcr 30000
 
+#define readInt 1000
+
 // declare logical switches
 bool a, b, c = false, d, e, f = false, wait1 = false, wait2 = false;
 
-unsigned long waitstart1, waitstart2;
+uint16_t lux;
+
+unsigned long waitstart1, waitstart2, readWait;
 
 void setup() {
-        pinMode(a, INPUT);
-        pinMode(b, INPUT);
-        pinMode(d, INPUT);
-        pinMode(e, INPUT);
-        pinMode(pinc, INPUT);
+  Serial.begin(9600);
+  Serial.print("Starting...");
+  pinMode(a, INPUT);
+  pinMode(b, INPUT);
+  pinMode(d, INPUT);
+  pinMode(e, INPUT);
 
-        pinMode(lpi, OUTPUT);
-        pinMode(lpt, OUTPUT);
-        pinMode(pinf, OUTPUT);
+  pinMode(lpi, OUTPUT);
+  pinMode(lpt, OUTPUT);
+  pinMode(pinf, OUTPUT);
+  Serial.print("I/O OK...");
 
-        Serial.begin(9600);
+  if (tsl.begin())
+  {
+    tsl.setGain(TSL2561_GAIN_16X);
+    tsl.setTiming(TSL2561_INTEGRATIONTIME_13MS);
+    Serial.print("Sensor OK...");
+  }
+  else
+  {
+    Serial.print("Sensor Error.");
+    while (1);
+  }
+
+  Serial.println("Done.");
+  readWait = millis();
 }
 
 void loop() {
-        a = digitalRead(pina);
-        b = digitalRead(pinb);
-        d = digitalRead(pind);
-        e = digitalRead(pine);
+  a = digitalRead(pina);
+  b = digitalRead(pinb);
+  d = digitalRead(pind);
+  e = digitalRead(pine);
 
-        if(Serial)
-                Serial.println(analogRead(pinc));
+  if (millis() - readWait >= readInt)
+  {
+    readWait = millis();
+    lux = tsl.getLuminosity(TSL2561_FULLSPECTRUM);
 
-        // checks the crepuscular thresholds for the corridor and "starts" the timer to change state
-        if (analogRead(pinc) <= croff) {
-                if (wait1 == false) {
-                        waitstart1 = millis();
-                        wait1=true;
-                } else if (millis() - waitstart1 >= intervalcr && wait1) {
-                        c = false;
-                        wait1=false;
-                }
-        } else if (analogRead(pinc) >= cron) {
-                if (wait1 == false) {
-                        waitstart1 = millis();
-                        wait1=true;
-                } else if (millis() - waitstart1 >= intervalcr && wait1) {
-                        c = true;
-                        wait1=false;
-                }
-        }
+    if (Serial) {
+      //Serial.print("Lux: ");
+      //Serial.println(lux);
 
-        // checks the crepuscular thresholds for the garden and "starts" the timer to change state
-        if (analogRead(pinc) <= extoff) {
-                if (wait2 == false) {
-                        waitstart2 = millis();
-                        wait2 = true;
-                } else if (millis() - waitstart2 >= intervalcr && wait2) {
-                        f = false;
-                        wait2=false;
-                }
-        } else if (analogRead(pinc) >= exton) {
-                if (wait2 == false) {
-                        waitstart2 = millis();
-                        wait2=true;
-                } else if (millis() - waitstart2 >= intervalcr && wait2) {
-                        f = true;
-                        wait2=false;
-                }
-        }
+      uint32_t lum = tsl.getFullLuminosity();
+  uint16_t ir, full;
+  ir = lum >> 16;
+  full = lum & 0xFFFF;
+  Serial.print("IR: "); Serial.print(ir);   Serial.print("\t\t");
+  Serial.print("Full: "); Serial.print(full);   Serial.print("\t");
+Serial.print("Visible: "); Serial.print(full - ir);   Serial.print("\t");
+  
+  Serial.print("Lux: "); Serial.println(tsl.calculateLux(full, ir));    }
+  }
 
-        // WARNING: Don't try to understand this
-        if (!a || d || (e && !b) || (b && c)) {
-                digitalWrite(l1, HIGH);
-        } else { digitalWrite(l1, LOW); }
+  // checks the crepuscular thresholds for the corridor and "starts" the timer to change state
+  if (lux <= croff) {
+    if (wait1 == false) {
+      waitstart1 = millis();
+      wait1 = true;
+    } else if (millis() - waitstart1 >= intervalcr && wait1) {
+      c = false;
+      wait1 = false;
+    }
+  } else if (lux >= cron) {
+    if (wait1 == false) {
+      waitstart1 = millis();
+      wait1 = true;
+    } else if (millis() - waitstart1 >= intervalcr && wait1) {
+      c = true;
+      wait1 = false;
+    }
+  }
 
-        if (!a || (a && !b && (d || e)) || a && b && c) {
-                digitalWrite(l2, HIGH);
-        } else { digitalWrite(l2, LOW); }
+  // checks the crepuscular thresholds for the garden and "starts" the timer to change state
+  if (lux <= extoff) {
+    if (wait2 == false) {
+      waitstart2 = millis();
+      wait2 = true;
+    } else if (millis() - waitstart2 >= intervalcr && wait2) {
+      f = false;
+      wait2 = false;
+    }
+  } else if (lux >= exton) {
+    if (wait2 == false) {
+      waitstart2 = millis();
+      wait2 = true;
+    } else if (millis() - waitstart2 >= intervalcr && wait2) {
+      f = true;
+      wait2 = false;
+    }
+  }
 
-        if (b && (!a || c)) {
-                digitalWrite(l3, HIGH);
-        } else { digitalWrite(l3, LOW); }
+  // WARNING: Don't try to understand this
+  if (!a || d || (e && !b) || (b && c)) {
+    digitalWrite(l1, HIGH);
+  } else {
+    digitalWrite(l1, LOW);
+  }
 
-        if (a && !(b && c)) {
-                digitalWrite(lpi, HIGH);
-        } else { digitalWrite(lpi, LOW); }
+  if (!a || (a && !b && (d || e)) || a && b && c) {
+    digitalWrite(l2, HIGH);
+  } else {
+    digitalWrite(l2, LOW);
+  }
 
-        if (a && !b) {
-                digitalWrite(lpt, HIGH);
-        } else { digitalWrite(lpt, LOW); }
+  if (b && (!a || c)) {
+    digitalWrite(l3, HIGH);
+  } else {
+    digitalWrite(l3, LOW);
+  }
 
-        if (a && b && f) {
-                digitalWrite(pinf, HIGH);
-        } else { digitalWrite(pinf, LOW); }
+  if (a && !(b && c)) {
+    digitalWrite(lpi, HIGH);
+  } else {
+    digitalWrite(lpi, LOW);
+  }
+
+  if (a && !b) {
+    digitalWrite(lpt, HIGH);
+  } else {
+    digitalWrite(lpt, LOW);
+  }
+
+  if (a && b && f) {
+    digitalWrite(pinf, HIGH);
+  } else {
+    digitalWrite(pinf, LOW);
+  }
 }
