@@ -1,5 +1,5 @@
 /*
-        lights.ino: Internal and external ights control with relay shield
+        lights.ino: Internal and external ights control with relay output and TSL2561 digital light sensor
 
         Pinout of the TSL2561 sensor:
             VCC: 3.3v
@@ -7,6 +7,8 @@
             SDA: A5
             SCL: A4
 
+        I wrote this software in ~2013, left it undocumented, and now it is barely understandable.
+        I'm planning to expand this system and might end up rewriting a good part of it.
 */
 #include "TSL2561.h"
 
@@ -82,26 +84,16 @@ void loop() {
   b = digitalRead(pinb);
   d = digitalRead(pind);
   e = digitalRead(pine);
-
+  
   if (millis() - readWait >= readInt)
   {
     readWait = millis();
-    lux = tsl.getLuminosity(TSL2561_FULLSPECTRUM);
+    lux = tsl.getLuminosity(TSL2561_VISIBLE);
 
     if (Serial) {
-      //Serial.print("Lux: ");
-      //Serial.println(lux);
-
-      uint32_t lum = tsl.getFullLuminosity();
-  uint16_t ir, full;
-  ir = lum >> 16;
-  full = lum & 0xFFFF;
-  Serial.print("IR: "); Serial.print(ir);   Serial.print("\t\t");
-  Serial.print("Full: "); Serial.print(full);   Serial.print("\t");
-Serial.print("Visible: "); Serial.print(full - ir);   Serial.print("\t");
-  
-  Serial.print("Lux: "); Serial.println(tsl.calculateLux(full, ir));    }
-  }
+      Serial.print("Lux: ");
+      Serial.println(lux);
+    }
 
   // checks the crepuscular thresholds for the corridor and "starts" the timer to change state
   if (lux <= croff) {
