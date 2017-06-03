@@ -1,5 +1,5 @@
 /*
-        lights.ino: Internal and external ights control with relay shield
+        lights.ino: Internal and external ights control with relays
 
         I wrote this software 4-5 years ago, left it undocumented, and now it is barely readable.
         I will upgrade this to work with a digital light sensor in the future, and I might end up rewriting a good part of it.
