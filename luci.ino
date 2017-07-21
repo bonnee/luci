@@ -4,8 +4,8 @@
  *      Pinout of the TSL2561 sensor:
  *          VCC: 3.3v
  *          GND: Ground
- *          SDA: A5
- *          SCL: A4
+ *          SCL: A5
+ *          SDA: A4
  *
  *      I wrote this software in ~2013, left it undocumented, and now it is barely understandable.
  *      This is a digital sensor conversion of the system.
