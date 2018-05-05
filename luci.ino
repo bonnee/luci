@@ -23,12 +23,12 @@
 #define lpt 12
 
 // crepuscular thresholds for the staircase lights
-#define cron 600
-#define croff 560
+#define cron 560
+#define croff 540
 
 // crepuscular thresholds for external lights
-#define exton 640
-#define extoff 620
+#define exton 560
+#define extoff 540
 
 // interval to wait before changing lights state (to debounce the photoresistor)
 #define intervalcr 30000
@@ -38,7 +38,8 @@ bool a, b, c = false, d, e, f = false, wait1 = false, wait2 = false;
 
 unsigned long waitstart1, waitstart2;
 
-void setup() {
+void setup()
+{
         pinMode(a, INPUT);
         pinMode(b, INPUT);
         pinMode(d, INPUT);
@@ -52,75 +53,124 @@ void setup() {
         Serial.begin(9600);
 }
 
-void loop() {
+void loop()
+{
         a = digitalRead(pina);
         b = digitalRead(pinb);
         d = digitalRead(pind);
         e = digitalRead(pine);
 
-        if(Serial)
+        if (Serial)
                 Serial.println(analogRead(pinc));
 
         // checks the crepuscular thresholds for the corridor and "starts" the timer to change state
-        if (analogRead(pinc) <= croff) {
-                if (wait1 == false) {
+        if (analogRead(pinc) <= croff)
+        {
+                if (wait1 == false)
+                {
                         waitstart1 = millis();
-                        wait1=true;
-                } else if (millis() - waitstart1 >= intervalcr && wait1) {
-                        c = false;
-                        wait1=false;
+                        wait1 = true;
                 }
-        } else if (analogRead(pinc) >= cron) {
-                if (wait1 == false) {
+                else if (millis() - waitstart1 >= intervalcr && wait1)
+                {
+                        c = false;
+                        wait1 = false;
+                }
+        }
+        else if (analogRead(pinc) >= cron)
+        {
+                if (wait1 == false)
+                {
                         waitstart1 = millis();
-                        wait1=true;
-                } else if (millis() - waitstart1 >= intervalcr && wait1) {
+                        wait1 = true;
+                }
+                else if (millis() - waitstart1 >= intervalcr && wait1)
+                {
                         c = true;
-                        wait1=false;
+                        wait1 = false;
                 }
         }
 
         // checks the crepuscular thresholds for the garden and "starts" the timer to change state
-        if (analogRead(pinc) <= extoff) {
-                if (wait2 == false) {
+        if (analogRead(pinc) <= extoff)
+        {
+                if (wait2 == false)
+                {
                         waitstart2 = millis();
                         wait2 = true;
-                } else if (millis() - waitstart2 >= intervalcr && wait2) {
-                        f = false;
-                        wait2=false;
                 }
-        } else if (analogRead(pinc) >= exton) {
-                if (wait2 == false) {
+                else if (millis() - waitstart2 >= intervalcr && wait2)
+                {
+                        f = false;
+                        wait2 = false;
+                }
+        }
+        else if (analogRead(pinc) >= exton)
+        {
+                if (wait2 == false)
+                {
                         waitstart2 = millis();
-                        wait2=true;
-                } else if (millis() - waitstart2 >= intervalcr && wait2) {
+                        wait2 = true;
+                }
+                else if (millis() - waitstart2 >= intervalcr && wait2)
+                {
                         f = true;
-                        wait2=false;
+                        wait2 = false;
                 }
         }
 
         // WARNING: Don't try to understand this
-        if (!a || d || (e && !b) || (b && c)) {
+        if (!a || d || (e && !b) || (b && c))
+        {
                 digitalWrite(l1, HIGH);
-        } else { digitalWrite(l1, LOW); }
+        }
+        else
+        {
+                digitalWrite(l1, LOW);
+        }
 
-        if (!a || (a && !b && (d || e)) || a && b && c) {
+        if (!a || (a && !b && (d || e)) || a && b && c)
+        {
                 digitalWrite(l2, HIGH);
-        } else { digitalWrite(l2, LOW); }
+        }
+        else
+        {
+                digitalWrite(l2, LOW);
+        }
 
-        if (b && (!a || c)) {
+        if (b && (!a || c))
+        {
                 digitalWrite(l3, HIGH);
-        } else { digitalWrite(l3, LOW); }
+        }
+        else
+        {
+                digitalWrite(l3, LOW);
+        }
 
-        if (a && !(b && c)) {
+        if (a && !(b && c))
+        {
                 digitalWrite(lpi, HIGH);
-        } else { digitalWrite(lpi, LOW); }
+        }
+        else
+        {
+                digitalWrite(lpi, LOW);
+        }
 
-        if (a && !b) {
+        if (a && !b)
+        {
                 digitalWrite(lpt, HIGH);
-        } else { digitalWrite(lpt, LOW); }
+        }
+        else
+        {
+                digitalWrite(lpt, LOW);
+        }
 
-        if (a && b && f) {
+        if (a && b && f)
+        {
                 digitalWrite(pinf, HIGH);
-        } else { digitalWrite(pinf, LOW); }
+        }
+        else
+        {
+                digitalWrite(pinf, LOW);
+        }
 }
