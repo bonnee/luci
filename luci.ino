@@ -13,14 +13,14 @@
 #define pinb 3
 #define pind 4
 #define pine 5
-#define pinf 13
 
 // lights
-#define l1 8
-#define l2 9
-#define l3 10
+#define l1 8  // giroscale basso
+#define l2 9  // giroscale piano terra
+#define l3 10 // giroscale tutto
 #define lpi 11
 #define lpt 12
+#define pinf 13 // esterno
 
 // crepuscular thresholds for the staircase lights
 #define cron 560
@@ -34,7 +34,9 @@
 #define intervalcr 30000
 
 // declare logical switches
-bool a, b, c = false, d, e, f = false, wait1 = false, wait2 = false;
+bool a,
+    b, c = false, d, e, f = false, wait1 = false, wait2 = false;
+int light;
 
 unsigned long waitstart1, waitstart2;
 
@@ -59,12 +61,13 @@ void loop()
         b = digitalRead(pinb);
         d = digitalRead(pind);
         e = digitalRead(pine);
+        light = analogRead(pinc);
 
         if (Serial)
-                Serial.println(analogRead(pinc));
+                Serial.println(light);
 
         // checks the crepuscular thresholds for the corridor and "starts" the timer to change state
-        if (analogRead(pinc) <= croff)
+        if (light <= croff)
         {
                 if (wait1 == false)
                 {
@@ -77,7 +80,7 @@ void loop()
                         wait1 = false;
                 }
         }
-        else if (analogRead(pinc) >= cron)
+        else if (light >= cron)
         {
                 if (wait1 == false)
                 {
@@ -92,7 +95,7 @@ void loop()
         }
 
         // checks the crepuscular thresholds for the garden and "starts" the timer to change state
-        if (analogRead(pinc) <= extoff)
+        if (light <= extoff)
         {
                 if (wait2 == false)
                 {
@@ -105,7 +108,7 @@ void loop()
                         wait2 = false;
                 }
         }
-        else if (analogRead(pinc) >= exton)
+        else if (light >= exton)
         {
                 if (wait2 == false)
                 {
@@ -131,11 +134,11 @@ void loop()
 
         if (!a || (a && !b && (d || e)) || a && b && c)
         {
-                digitalWrite(l2, HIGH);
+                digitalWrite(l2, LOW); // Inverted for relay fault
         }
         else
         {
-                digitalWrite(l2, LOW);
+                digitalWrite(l2, HIGH); // Inverted for relay fault
         }
 
         if (b && (!a || c))
