@@ -22,14 +22,14 @@ TSL2561 tsl(TSL2561_ADDR_FLOAT);
 #define pinb 3
 #define pind 4
 #define pine 5
-#define pinf 13
 
 // lights
-#define l1 8
-#define l2 9
-#define l3 10
+#define l1 8  // giroscale basso
+#define l2 9  // giroscale piano terra
+#define l3 10 // giroscale tutto
 #define lpi 11
 #define lpt 12
+#define pinf 13 // esterno
 
 // crepuscular thresholds for the staircase lights
 #define cron 600
