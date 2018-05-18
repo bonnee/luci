@@ -1,15 +1,16 @@
 /*
-        lights.ino: Internal and external ights control with relay output and TSL2561 digital light sensor
-
-        Pinout of the TSL2561 sensor:
-            VCC: 3.3v
-            GND: Ground
-            SDA: A5
-            SCL: A4
-
-        I wrote this software in ~2013, left it undocumented, and now it is barely understandable.
-        I'm planning to expand this system and might end up rewriting a good part of it.
+ *      lights.ino: Internal and external lights control with relay output and TSL2561 digital light sensor
+ *
+ *      Pinout of the TSL2561 sensor:
+ *          VCC: 3.3v
+ *          GND: Ground
+ *          SCL: A5
+ *          SDA: A4
+ *
+ *      I wrote this software in ~2013, left it undocumented, and now it is barely understandable.
+ *      This is a digital sensor conversion of the system.
 */
+
 #include "TSL2561.h"
 
 // photoresistor
@@ -21,14 +22,14 @@ TSL2561 tsl(TSL2561_ADDR_FLOAT);
 #define pinb 3
 #define pind 4
 #define pine 5
-#define pinf 13
 
 // lights
-#define l1 8
-#define l2 9
-#define l3 10
+#define l1 8  // giroscale basso
+#define l2 9  // giroscale piano terra
+#define l3 10 // giroscale tutto
 #define lpi 11
 #define lpt 12
+#define pinf 13 // esterno
 
 // crepuscular thresholds for the staircase lights
 #define cron 600
@@ -38,7 +39,7 @@ TSL2561 tsl(TSL2561_ADDR_FLOAT);
 #define exton 640
 #define extoff 620
 
-// interval to wait before changing lights state (to debounce the photoresistor)
+// interval to wait before changing lights state (to avoid continuous on/off)
 #define intervalcr 30000
 
 #define readInt 1000
