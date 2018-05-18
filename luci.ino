@@ -50,7 +50,8 @@ uint16_t lux;
 
 unsigned long waitstart1, waitstart2, readWait;
 
-void setup() {
+void setup()
+{
   Serial.begin(9600);
   Serial.print("Starting...");
   pinMode(a, INPUT);
@@ -72,101 +73,141 @@ void setup() {
   else
   {
     Serial.print("Sensor Error.");
-    while (1);
+    while (1)
+      ;
   }
 
   Serial.println("Done.");
   readWait = millis();
 }
 
-void loop() {
+void loop()
+{
+  unsigned long now = millis();
   a = digitalRead(pina);
   b = digitalRead(pinb);
   d = digitalRead(pind);
   e = digitalRead(pine);
-  
-  if (millis() - readWait >= readInt)
+
+  if (now - readWait >= readInt)
   {
-    readWait = millis();
+    readWait = now;
     lux = tsl.getLuminosity(TSL2561_VISIBLE);
 
-    if (Serial) {
+    if (Serial)
+    {
       Serial.print("Lux: ");
       Serial.println(lux);
     }
 
-  // checks the crepuscular thresholds for the corridor and "starts" the timer to change state
-  if (lux <= croff) {
-    if (wait1 == false) {
-      waitstart1 = millis();
-      wait1 = true;
-    } else if (millis() - waitstart1 >= intervalcr && wait1) {
-      c = false;
-      wait1 = false;
+    // checks the crepuscular thresholds for the corridor and "starts" the timer to change state
+    if (lux <= croff)
+    {
+      if (wait1 == false)
+      {
+        waitstart1 = now;
+        wait1 = true;
+      }
+      else if (wait1 && (now - waitstart1 >= intervalcr))
+      {
+        c = false;
+        wait1 = false;
+      }
     }
-  } else if (lux >= cron) {
-    if (wait1 == false) {
-      waitstart1 = millis();
-      wait1 = true;
-    } else if (millis() - waitstart1 >= intervalcr && wait1) {
-      c = true;
-      wait1 = false;
+    else if (lux >= cron)
+    {
+      if (wait1 == false)
+      {
+        waitstart1 = now;
+        wait1 = true;
+      }
+      else if (wait1 && (now - waitstart1 >= intervalcr))
+      {
+        c = true;
+        wait1 = false;
+      }
+    }
+
+    // checks the crepuscular thresholds for the garden and "starts" the timer to change state
+    if (lux <= extoff)
+    {
+      if (wait2 == false)
+      {
+        waitstart2 = now;
+        wait2 = true;
+      }
+      else if (wait2 && (now - waitstart2 >= intervalcr))
+      {
+        f = false;
+        wait2 = false;
+      }
+    }
+    else if (lux >= exton)
+    {
+      if (wait2 == false)
+      {
+        waitstart2 = now;
+        wait2 = true;
+      }
+      else if (wait2 && (now - waitstart2 >= intervalcr))
+      {
+        f = true;
+        wait2 = false;
+      }
+    }
+
+    // WARNING: Don't try to understand this
+    if (!a || d || (e && !b) || (b && c))
+    {
+      digitalWrite(l1, HIGH);
+    }
+    else
+    {
+      digitalWrite(l1, LOW);
+    }
+
+    if (!a || (a && !b && (d || e)) || a && b && c)
+    {
+      digitalWrite(l2, HIGH);
+    }
+    else
+    {
+      digitalWrite(l2, LOW);
+    }
+
+    if (b && (!a || c))
+    {
+      digitalWrite(l3, HIGH);
+    }
+    else
+    {
+      digitalWrite(l3, LOW);
+    }
+
+    if (a && !(b && c))
+    {
+      digitalWrite(lpi, HIGH);
+    }
+    else
+    {
+      digitalWrite(lpi, LOW);
+    }
+
+    if (a && !b)
+    {
+      digitalWrite(lpt, HIGH);
+    }
+    else
+    {
+      digitalWrite(lpt, LOW);
+    }
+
+    if (a && b && f)
+    {
+      digitalWrite(pinf, HIGH);
+    }
+    else
+    {
+      digitalWrite(pinf, LOW);
     }
   }
-
-  // checks the crepuscular thresholds for the garden and "starts" the timer to change state
-  if (lux <= extoff) {
-    if (wait2 == false) {
-      waitstart2 = millis();
-      wait2 = true;
-    } else if (millis() - waitstart2 >= intervalcr && wait2) {
-      f = false;
-      wait2 = false;
-    }
-  } else if (lux >= exton) {
-    if (wait2 == false) {
-      waitstart2 = millis();
-      wait2 = true;
-    } else if (millis() - waitstart2 >= intervalcr && wait2) {
-      f = true;
-      wait2 = false;
-    }
-  }
-
-  // WARNING: Don't try to understand this
-  if (!a || d || (e && !b) || (b && c)) {
-    digitalWrite(l1, HIGH);
-  } else {
-    digitalWrite(l1, LOW);
-  }
-
-  if (!a || (a && !b && (d || e)) || a && b && c) {
-    digitalWrite(l2, HIGH);
-  } else {
-    digitalWrite(l2, LOW);
-  }
-
-  if (b && (!a || c)) {
-    digitalWrite(l3, HIGH);
-  } else {
-    digitalWrite(l3, LOW);
-  }
-
-  if (a && !(b && c)) {
-    digitalWrite(lpi, HIGH);
-  } else {
-    digitalWrite(lpi, LOW);
-  }
-
-  if (a && !b) {
-    digitalWrite(lpt, HIGH);
-  } else {
-    digitalWrite(lpt, LOW);
-  }
-
-  if (a && b && f) {
-    digitalWrite(pinf, HIGH);
-  } else {
-    digitalWrite(pinf, LOW);
-  }
-}
