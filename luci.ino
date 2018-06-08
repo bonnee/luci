@@ -13,202 +13,198 @@
 
 #include "TSL2561.h"
 
-// photoresistor
-//#define pinc A0
-TSL2561 tsl(TSL2561_ADDR_FLOAT);
+#define DEBUG(x)  if(Serial) { Serial.print(x); }
+
+#define ON LOW
+#define OFF HIGH
 
 // switches
-#define pina 2
-#define pinb 3
-#define pind 4
-#define pine 5
+#define SW_AUTO 2
+#define SW_SEASON 3
+#define IR_REAR 4
+#define IR_GROUND 5
 
-// lights
-#define l1 8  // giroscale basso
-#define l2 9  // giroscale piano terra
-#define l3 10 // giroscale tutto
-#define lpi 11
-#define lpt 12
-#define pinf 13 // esterno
+// outputs
+#define L_UNUSED_0 6
+#define L_UNUSED_1 7
+#define L_ENTRANCE_R 8  // rear entrance lights
+#define L_GROUND 9  // ground floor lights
+#define L_STAIRS 10 // staircase lights
+#define IR_ENTRANCE_R 11 // rear entrance ir power
+#define IR_GROUND 12 // ground floor ir power
+#define L_EXT 13 // external lights
 
 // crepuscular thresholds for the staircase lights
-#define cron 600
-#define croff 560
+#define CRON 100
+#define CROFF 110
 
 // crepuscular thresholds for external lights
-#define exton 640
-#define extoff 620
+#define EXTON 640
+#define EXTOFF 620
 
 // interval to wait before changing lights state (to avoid continuous on/off)
-#define intervalcr 30000
+#define INTERVALCR 30000
 
-#define readInt 1000
+#define READINT 1000
 
-// declare logical switches
-bool a, b, c = false, d, e, f = false, wait1 = false, wait2 = false;
+TSL2561 tsl(TSL2561_ADDR_FLOAT);
+
 
 uint16_t lux;
 
+bool wait1 = false, wait2 = false;
 unsigned long waitstart1, waitstart2, readWait;
 
 void setup()
 {
   Serial.begin(9600);
-  Serial.print("Starting...");
-  pinMode(a, INPUT);
-  pinMode(b, INPUT);
-  pinMode(d, INPUT);
-  pinMode(e, INPUT);
+  DEBUG("Starting...");
 
-  pinMode(lpi, OUTPUT);
-  pinMode(lpt, OUTPUT);
-  pinMode(pinf, OUTPUT);
-  Serial.print("I/O OK...");
+  pinMode(SW_AUTO, INPUT_PULLUP);
+  pinMode(SW_SEASON, INPUT_PULLUP);
+  pinMode(IR_REAR, INPUT_PULLUP);
+  pinMode(IR_GROUND, INPUT_PULLUP);
+
+  pinMode(L_ENTRANCE_R, OUTPUT);
+  pinMode(L_GROUND, OUTPUT);
+  pinMode(L_STAIRS, OUTPUT);
+  pinMode(IR_ENTRANCE_R, OUTPUT);
+  pinMode(IR_GROUND, OUTPUT);
+  pinMode(L_EXT, OUTPUT);
+
+  DEBUG("I/O...");
 
   if (tsl.begin())
   {
     tsl.setGain(TSL2561_GAIN_16X);
     tsl.setTiming(TSL2561_INTEGRATIONTIME_13MS);
-    Serial.print("Sensor OK...");
+    DEBUG("Sensor...");
   }
   else
   {
-    Serial.print("Sensor Error.");
-    while (1)
-      ;
+    DEBUG("Sensor Error.");
+    while (1);
   }
 
-  Serial.println("Done.");
+  DEBUG("Done.\n");
   readWait = millis();
 }
 
-void loop()
-{
-  unsigned long now = millis();
-  a = digitalRead(pina);
-  b = digitalRead(pinb);
-  d = digitalRead(pind);
-  e = digitalRead(pine);
+/* Declare logic vars
+    sw_ = switch
+    ir_ = ir sensor
+    tog_ = logic toggle */
+bool sw_auto,sw_season,ir_rear,ir_ground;
+bool tog_stairs=false,tog_garden=false;
 
-  if (now - readWait >= readInt)
+void loop() {
+  sw_auto = digitalRead(SW_AUTO);
+  sw_season = digitalRead(SW_SEASON);
+  ir_rear = digitalRead(IR_REAR);
+  ir_ground = digitalRead(IR_GROUND);
+  
+  if (millis() - readWait >= READINT)
   {
     readWait = now;
     lux = tsl.getLuminosity(TSL2561_VISIBLE);
 
-    if (Serial)
-    {
-      Serial.print("Lux: ");
-      Serial.println(lux);
+    if (Serial) {
+      DEBUG("Lux: ");
+      DEBUG(lux);
+      DEBUG("\n");
     }
 
-    // checks the crepuscular thresholds for the corridor and "starts" the timer to change state
-    if (lux <= croff)
-    {
-      if (wait1 == false)
-      {
-        waitstart1 = now;
-        wait1 = true;
-      }
-      else if (wait1 && (now - waitstart1 >= intervalcr))
-      {
-        c = false;
-        wait1 = false;
-      }
+  // checks the crepuscular thresholds for the corridor and "starts" the timer to change state
+  if (lux >= CROFF) {
+    if (!wait1) {
+      waitstart1 = millis();
+      wait1 = true;
+    } else if (millis() - waitstart1 >= INTERVALCR && wait1) {
+      tog_stairs = false;
+      wait1 = false;
     }
-    else if (lux >= cron)
-    {
-      if (wait1 == false)
-      {
-        waitstart1 = now;
-        wait1 = true;
-      }
-      else if (wait1 && (now - waitstart1 >= intervalcr))
-      {
-        c = true;
-        wait1 = false;
-      }
+  } else if (lux <= CRON) {
+    if (!wait1) {
+      waitstart1 = millis();
+      wait1 = true;
+    } else if (millis() - waitstart1 >= INTERVALCR && wait1) {
+      tog_stairs = true;
+      wait1 = false;
     }
 
-    // checks the crepuscular thresholds for the garden and "starts" the timer to change state
-    if (lux <= extoff)
-    {
-      if (wait2 == false)
-      {
-        waitstart2 = now;
-        wait2 = true;
-      }
-      else if (wait2 && (now - waitstart2 >= intervalcr))
-      {
-        f = false;
-        wait2 = false;
-      }
+  // checks the crepuscular thresholds for the garden and "starts" the timer to change state
+  if (lux >= EXTOFF) {
+    if (!wait2) {
+      waitstart2 = millis();
+      wait2 = true;
+    } else if (millis() - waitstart2 >= INTERVALCR && wait2) {
+      tog_garden = false;
+      wait2 = false;
     }
-    else if (lux >= exton)
-    {
-      if (wait2 == false)
-      {
-        waitstart2 = now;
-        wait2 = true;
-      }
-      else if (wait2 && (now - waitstart2 >= intervalcr))
-      {
-        f = true;
-        wait2 = false;
-      }
+  } else if (lux <= EXTON) {
+    if (!wait2) {
+      waitstart2 = millis();
+      wait2 = true;
+    } else if (millis() - waitstart2 >= INTERVALCR && wait2) {
+      tog_garden = true;
+      wait2 = false;
     }
 
-    // WARNING: Don't try to understand this
-    if (!a || d || (e && !b) || (b && c))
-    {
-      digitalWrite(l1, HIGH);
-    }
-    else
-    {
-      digitalWrite(l1, LOW);
-    }
+  DEBUG(sw_auto);
+  DEBUG(sw_season);
+  DEBUG(tog_stairs);
+  DEBUG(ir_rear);
+  DEBUG(ir_ground);
 
-    if (!a || (a && !b && (d || e)) || a && b && c)
-    {
-      digitalWrite(l2, HIGH);
-    }
-    else
-    {
-      digitalWrite(l2, LOW);
-    }
+  DEBUG(" -> ");
 
-    if (b && (!a || c))
-    {
-      digitalWrite(l3, HIGH);
-    }
-    else
-    {
-      digitalWrite(l3, LOW);
-    }
+  // WARNING: Don't try to understand this
+  if (!sw_auto || ir_rear || (ir_ground && !sw_season) || (sw_season && tog_stairs)) {
+    digitalWrite(L_ENTRANCE_R, ON);
+    DEBUG("1 ");
+  } else {
+    digitalWrite(L_ENTRANCE_R, OFF);
+        DEBUG("0 ");
+  }
 
-    if (a && !(b && c))
-    {
-      digitalWrite(lpi, HIGH);
-    }
-    else
-    {
-      digitalWrite(lpi, LOW);
-    }
+  if (!sw_auto || (sw_auto && !sw_season && (ir_rear || ir_ground)) || sw_auto && sw_season && tog_stairs) {
+    digitalWrite(L_GROUND, ON);
+    DEBUG("1 ");
+  } else {
+    digitalWrite(L_GROUND, OFF);
+    DEBUG("0 ");
+  }
 
-    if (a && !b)
-    {
-      digitalWrite(lpt, HIGH);
-    }
-    else
-    {
-      digitalWrite(lpt, LOW);
-    }
+  if (sw_season && (!sw_auto || tog_stairs)) {
+    digitalWrite(L_STAIRS, ON);
+    DEBUG("1 ");
+  } else {
+    digitalWrite(L_STAIRS, OFF);
+    DEBUG("0 ");
+  }
 
-    if (a && b && f)
-    {
-      digitalWrite(pinf, HIGH);
-    }
-    else
-    {
-      digitalWrite(pinf, LOW);
-    }
+  if (sw_auto && !(sw_season && tog_stairs)) {
+    digitalWrite(IR_ENTRANCE_R, ON);
+    DEBUG("1 ");
+  } else {
+    digitalWrite(IR_ENTRANCE_R, OFF);
+    DEBUG("0 ");
+  }
+
+  if (sw_auto && !sw_season) {
+    digitalWrite(IR_GROUND, ON);
+    DEBUG("1 ");
+  } else {
+    digitalWrite(IR_GROUND, OFF);
+    DEBUG("0 ");
+  }
+
+  if (sw_auto && sw_season && tog_garden) {
+    digitalWrite(L_EXT, ON);
+    DEBUG("1 ");
+  } else {
+    digitalWrite(L_EXT, OFF);
+    DEBUG("0 ");
+  }
+  DEBUG("\n");
   }
