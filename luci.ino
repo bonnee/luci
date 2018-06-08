@@ -13,7 +13,11 @@
 
 #include "TSL2561.h"
 
-#define DEBUG(x)  if(Serial) { Serial.print(x); }
+#define DEBUG(x)     \
+  if (Serial)        \
+  {                  \
+    Serial.print(x); \
+  }
 
 #define ON LOW
 #define OFF HIGH
@@ -27,12 +31,12 @@
 // outputs
 #define L_UNUSED_0 6
 #define L_UNUSED_1 7
-#define L_ENTRANCE_R 8  // rear entrance lights
-#define L_GROUND 9  // ground floor lights
-#define L_STAIRS 10 // staircase lights
+#define L_ENTRANCE_R 8   // rear entrance lights
+#define L_GROUND 9       // ground floor lights
+#define L_STAIRS 10      // staircase lights
 #define IR_ENTRANCE_R 11 // rear entrance ir power
-#define IR_GROUND 12 // ground floor ir power
-#define L_EXT 13 // external lights
+#define IR_GROUND 12     // ground floor ir power
+#define L_EXT 13         // external lights
 
 // crepuscular thresholds for the staircase lights
 #define CRON 100
@@ -45,10 +49,9 @@
 // interval to wait before changing lights state (to avoid continuous on/off)
 #define INTERVALCR 30000
 
-#define READINT 1000
+#define READINT 500
 
 TSL2561 tsl(TSL2561_ADDR_FLOAT);
-
 
 uint16_t lux;
 
@@ -83,7 +86,8 @@ void setup()
   else
   {
     DEBUG("Sensor Error.");
-    while (1);
+    while (1)
+      ;
   }
 
   DEBUG("Done.\n");
@@ -94,117 +98,160 @@ void setup()
     sw_ = switch
     ir_ = ir sensor
     tog_ = logic toggle */
-bool sw_auto,sw_season,ir_rear,ir_ground;
-bool tog_stairs=false,tog_garden=false;
+bool sw_auto, sw_season, ir_rear, ir_ground;
+bool tog_stairs = false, tog_garden = false;
+unsigned long now;
 
-void loop() {
+void loop()
+{
+  now = millis();
   sw_auto = digitalRead(SW_AUTO);
   sw_season = digitalRead(SW_SEASON);
   ir_rear = digitalRead(IR_REAR);
   ir_ground = digitalRead(IR_GROUND);
-  
-  if (millis() - readWait >= READINT)
+
+  if (now - readWait >= READINT)
   {
     readWait = now;
     lux = tsl.getLuminosity(TSL2561_VISIBLE);
 
-    if (Serial) {
+    if (Serial)
+    {
       DEBUG("Lux: ");
       DEBUG(lux);
       DEBUG("\n");
     }
 
-  // checks the crepuscular thresholds for the corridor and "starts" the timer to change state
-  if (lux >= CROFF) {
-    if (!wait1) {
-      waitstart1 = millis();
-      wait1 = true;
-    } else if (millis() - waitstart1 >= INTERVALCR && wait1) {
-      tog_stairs = false;
-      wait1 = false;
+    // checks the crepuscular thresholds for the corridor and "starts" the timer to change state
+    if (lux >= CROFF)
+    {
+      if (!wait1)
+      {
+        waitstart1 = now;
+        wait1 = true;
+      }
+      else if (now - waitstart1 >= INTERVALCR && wait1)
+      {
+        tog_stairs = false;
+        wait1 = false;
+      }
     }
-  } else if (lux <= CRON) {
-    if (!wait1) {
-      waitstart1 = millis();
-      wait1 = true;
-    } else if (millis() - waitstart1 >= INTERVALCR && wait1) {
-      tog_stairs = true;
-      wait1 = false;
+    else if (lux <= CRON)
+    {
+      if (!wait1)
+      {
+        waitstart1 = now;
+        wait1 = true;
+      }
+      else if (now - waitstart1 >= INTERVALCR && wait1)
+      {
+        tog_stairs = true;
+        wait1 = false;
+      }
+
+      // checks the crepuscular thresholds for the garden and "starts" the timer to change state
+      if (lux >= EXTOFF)
+      {
+        if (!wait2)
+        {
+          waitstart2 = now;
+          wait2 = true;
+        }
+        else if (now - waitstart2 >= INTERVALCR && wait2)
+        {
+          tog_garden = false;
+          wait2 = false;
+        }
+      }
+      else if (lux <= EXTON)
+      {
+        if (!wait2)
+        {
+          waitstart2 = now;
+          wait2 = true;
+        }
+        else if (now - waitstart2 >= INTERVALCR && wait2)
+        {
+          tog_garden = true;
+          wait2 = false;
+        }
+
+        DEBUG(sw_auto);
+        DEBUG(sw_season);
+        DEBUG(tog_stairs);
+        DEBUG(ir_rear);
+        DEBUG(ir_ground);
+
+        DEBUG(" -> ");
+
+        // WARNING: Don't try to understand this
+        if (!sw_auto || ir_rear || (ir_ground && !sw_season) || (sw_season && tog_stairs))
+        {
+          digitalWrite(L_ENTRANCE_R, ON);
+          DEBUG("1 ");
+        }
+        else
+        {
+          digitalWrite(L_ENTRANCE_R, OFF);
+          DEBUG("0 ");
+        }
+
+        if (!sw_auto || (sw_auto && !sw_season && (ir_rear || ir_ground)) || sw_auto && sw_season && tog_stairs)
+        {
+          digitalWrite(L_GROUND, ON);
+          DEBUG("1 ");
+        }
+        else
+        {
+          digitalWrite(L_GROUND, OFF);
+          DEBUG("0 ");
+        }
+
+        if (sw_season && (!sw_auto || tog_stairs))
+        {
+          digitalWrite(L_STAIRS, ON);
+          DEBUG("1 ");
+        }
+        else
+        {
+          digitalWrite(L_STAIRS, OFF);
+          DEBUG("0 ");
+        }
+
+        if (sw_auto && !(sw_season && tog_stairs))
+        {
+          digitalWrite(IR_ENTRANCE_R, ON);
+          DEBUG("1 ");
+        }
+        else
+        {
+          digitalWrite(IR_ENTRANCE_R, OFF);
+          DEBUG("0 ");
+        }
+
+        if (sw_auto && !sw_season)
+        {
+          digitalWrite(IR_GROUND, ON);
+          DEBUG("1 ");
+        }
+        else
+        {
+          digitalWrite(IR_GROUND, OFF);
+          DEBUG("0 ");
+        }
+
+        if (sw_auto && sw_season && tog_garden)
+        {
+          digitalWrite(L_EXT, ON);
+          DEBUG("1 ");
+        }
+        else
+        {
+          digitalWrite(L_EXT, OFF);
+          DEBUG("0 ");
+        }
+        DEBUG("\n");
+      }
     }
-
-  // checks the crepuscular thresholds for the garden and "starts" the timer to change state
-  if (lux >= EXTOFF) {
-    if (!wait2) {
-      waitstart2 = millis();
-      wait2 = true;
-    } else if (millis() - waitstart2 >= INTERVALCR && wait2) {
-      tog_garden = false;
-      wait2 = false;
-    }
-  } else if (lux <= EXTON) {
-    if (!wait2) {
-      waitstart2 = millis();
-      wait2 = true;
-    } else if (millis() - waitstart2 >= INTERVALCR && wait2) {
-      tog_garden = true;
-      wait2 = false;
-    }
-
-  DEBUG(sw_auto);
-  DEBUG(sw_season);
-  DEBUG(tog_stairs);
-  DEBUG(ir_rear);
-  DEBUG(ir_ground);
-
-  DEBUG(" -> ");
-
-  // WARNING: Don't try to understand this
-  if (!sw_auto || ir_rear || (ir_ground && !sw_season) || (sw_season && tog_stairs)) {
-    digitalWrite(L_ENTRANCE_R, ON);
-    DEBUG("1 ");
-  } else {
-    digitalWrite(L_ENTRANCE_R, OFF);
-        DEBUG("0 ");
   }
-
-  if (!sw_auto || (sw_auto && !sw_season && (ir_rear || ir_ground)) || sw_auto && sw_season && tog_stairs) {
-    digitalWrite(L_GROUND, ON);
-    DEBUG("1 ");
-  } else {
-    digitalWrite(L_GROUND, OFF);
-    DEBUG("0 ");
-  }
-
-  if (sw_season && (!sw_auto || tog_stairs)) {
-    digitalWrite(L_STAIRS, ON);
-    DEBUG("1 ");
-  } else {
-    digitalWrite(L_STAIRS, OFF);
-    DEBUG("0 ");
-  }
-
-  if (sw_auto && !(sw_season && tog_stairs)) {
-    digitalWrite(IR_ENTRANCE_R, ON);
-    DEBUG("1 ");
-  } else {
-    digitalWrite(IR_ENTRANCE_R, OFF);
-    DEBUG("0 ");
-  }
-
-  if (sw_auto && !sw_season) {
-    digitalWrite(IR_GROUND, ON);
-    DEBUG("1 ");
-  } else {
-    digitalWrite(IR_GROUND, OFF);
-    DEBUG("0 ");
-  }
-
-  if (sw_auto && sw_season && tog_garden) {
-    digitalWrite(L_EXT, ON);
-    DEBUG("1 ");
-  } else {
-    digitalWrite(L_EXT, OFF);
-    DEBUG("0 ");
-  }
-  DEBUG("\n");
-  }
+}
