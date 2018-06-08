@@ -23,20 +23,20 @@
 #define OFF HIGH
 
 // switches
-#define SW_AUTO 2
-#define SW_SEASON 3
-#define IR_REAR 4
-#define IR_GROUND 5
+#define SW_AUTO 4
+#define SW_SEASON 5
+#define IR_REAR 2
+#define IR_GROUND 3
 
 // outputs
 #define L_UNUSED_0 6
 #define L_UNUSED_1 7
-#define L_ENTRANCE_R 8   // rear entrance lights
-#define L_GROUND 9       // ground floor lights
-#define L_STAIRS 10      // staircase lights
-#define IR_ENTRANCE_R 11 // rear entrance ir power
-#define IR_GROUND 12     // ground floor ir power
-#define L_EXT 13         // external lights
+#define L_ENTRANCE_R 8  // rear entrance lights
+#define L_GROUND 9      // ground floor lights
+#define L_STAIRS 10     // staircase lights
+#define PW_IR_REAR 11   // rear entrance ir power
+#define PW_IR_GROUND 12 // ground floor ir power
+#define L_EXT 13        // external lights
 
 // crepuscular thresholds for the staircase lights
 #define CRON 100
@@ -49,14 +49,21 @@
 // interval to wait before changing lights state (to avoid continuous on/off)
 #define INTERVALCR 30000
 
-#define READINT 500
+#define READINT 5000
 
 TSL2561 tsl(TSL2561_ADDR_FLOAT);
 
 uint16_t lux;
 
+/* Declare logic vars
+    sw_ = switch
+    ir_ = ir sensor
+    tog_ = logic toggle */
+bool sw_auto, sw_season, ir_rear, ir_ground;
+bool tog_stairs = false, tog_garden = false;
+
 bool wait1 = false, wait2 = false;
-unsigned long waitstart1, waitstart2, readWait;
+unsigned long waitstart1, waitstart2, readWait, now;
 
 void setup()
 {
@@ -71,10 +78,9 @@ void setup()
   pinMode(L_ENTRANCE_R, OUTPUT);
   pinMode(L_GROUND, OUTPUT);
   pinMode(L_STAIRS, OUTPUT);
-  pinMode(IR_ENTRANCE_R, OUTPUT);
-  pinMode(IR_GROUND, OUTPUT);
+  pinMode(PW_IR_REAR, OUTPUT);
+  pinMode(PW_IR_GROUND, OUTPUT);
   pinMode(L_EXT, OUTPUT);
-
   DEBUG("I/O...");
 
   if (tsl.begin())
@@ -93,14 +99,6 @@ void setup()
   DEBUG("Done.\n");
   readWait = millis();
 }
-
-/* Declare logic vars
-    sw_ = switch
-    ir_ = ir sensor
-    tog_ = logic toggle */
-bool sw_auto, sw_season, ir_rear, ir_ground;
-bool tog_stairs = false, tog_garden = false;
-unsigned long now;
 
 void loop()
 {
@@ -148,110 +146,89 @@ void loop()
         tog_stairs = true;
         wait1 = false;
       }
+    }
 
-      // checks the crepuscular thresholds for the garden and "starts" the timer to change state
-      if (lux >= EXTOFF)
+    // checks the crepuscular thresholds for the garden and "starts" the timer to change state
+    if (lux >= EXTOFF)
+    {
+      if (!wait2)
       {
-        if (!wait2)
-        {
-          waitstart2 = now;
-          wait2 = true;
-        }
-        else if (now - waitstart2 >= INTERVALCR && wait2)
-        {
-          tog_garden = false;
-          wait2 = false;
-        }
+        waitstart2 = now;
+        wait2 = true;
       }
-      else if (lux <= EXTON)
+      else if (now - waitstart2 >= INTERVALCR && wait2)
       {
-        if (!wait2)
-        {
-          waitstart2 = now;
-          wait2 = true;
-        }
-        else if (now - waitstart2 >= INTERVALCR && wait2)
-        {
-          tog_garden = true;
-          wait2 = false;
-        }
-
-        DEBUG(sw_auto);
-        DEBUG(sw_season);
-        DEBUG(tog_stairs);
-        DEBUG(ir_rear);
-        DEBUG(ir_ground);
-
-        DEBUG(" -> ");
-
-        // WARNING: Don't try to understand this
-        if (!sw_auto || ir_rear || (ir_ground && !sw_season) || (sw_season && tog_stairs))
-        {
-          digitalWrite(L_ENTRANCE_R, ON);
-          DEBUG("1 ");
-        }
-        else
-        {
-          digitalWrite(L_ENTRANCE_R, OFF);
-          DEBUG("0 ");
-        }
-
-        if (!sw_auto || (sw_auto && !sw_season && (ir_rear || ir_ground)) || sw_auto && sw_season && tog_stairs)
-        {
-          digitalWrite(L_GROUND, ON);
-          DEBUG("1 ");
-        }
-        else
-        {
-          digitalWrite(L_GROUND, OFF);
-          DEBUG("0 ");
-        }
-
-        if (sw_season && (!sw_auto || tog_stairs))
-        {
-          digitalWrite(L_STAIRS, ON);
-          DEBUG("1 ");
-        }
-        else
-        {
-          digitalWrite(L_STAIRS, OFF);
-          DEBUG("0 ");
-        }
-
-        if (sw_auto && !(sw_season && tog_stairs))
-        {
-          digitalWrite(IR_ENTRANCE_R, ON);
-          DEBUG("1 ");
-        }
-        else
-        {
-          digitalWrite(IR_ENTRANCE_R, OFF);
-          DEBUG("0 ");
-        }
-
-        if (sw_auto && !sw_season)
-        {
-          digitalWrite(IR_GROUND, ON);
-          DEBUG("1 ");
-        }
-        else
-        {
-          digitalWrite(IR_GROUND, OFF);
-          DEBUG("0 ");
-        }
-
-        if (sw_auto && sw_season && tog_garden)
-        {
-          digitalWrite(L_EXT, ON);
-          DEBUG("1 ");
-        }
-        else
-        {
-          digitalWrite(L_EXT, OFF);
-          DEBUG("0 ");
-        }
-        DEBUG("\n");
+        tog_garden = false;
+        wait2 = false;
       }
     }
+    else if (lux <= EXTON)
+    {
+      if (!wait2)
+      {
+        waitstart2 = now;
+        wait2 = true;
+      }
+      else if (now - waitstart2 >= INTERVALCR && wait2)
+      {
+        tog_garden = true;
+        wait2 = false;
+      }
+    }
+  }
+
+  // WARNING: Don't try to understand this
+  if (!sw_auto || ir_rear || (ir_ground && !sw_season) || (sw_season && tog_stairs))
+  {
+    digitalWrite(L_ENTRANCE_R, ON);
+  }
+  else
+  {
+    digitalWrite(L_ENTRANCE_R, OFF);
+  }
+
+  if (!sw_auto || (sw_auto && !sw_season && (ir_rear || ir_ground)) || sw_auto && sw_season && tog_stairs)
+  {
+    digitalWrite(L_GROUND, ON);
+  }
+  else
+  {
+    digitalWrite(L_GROUND, OFF);
+  }
+
+  if (sw_season && (!sw_auto || tog_stairs))
+  {
+    digitalWrite(L_STAIRS, ON);
+  }
+  else
+  {
+    digitalWrite(L_STAIRS, OFF);
+  }
+
+  if (sw_auto && !(sw_season && tog_stairs))
+  {
+    digitalWrite(PW_IR_REAR, ON);
+  }
+  else
+  {
+    digitalWrite(PW_IR_REAR, OFF);
+  }
+
+  if (sw_auto && !sw_season)
+  {
+    digitalWrite(PW_IR_GROUND, ON);
+  }
+  else
+  {
+    digitalWrite(PW_IR_GROUND, OFF);
+  }
+
+  if (sw_auto && sw_season && tog_garden)
+  {
+    digitalWrite(L_EXT, ON);
+  }
+  else
+  {
+    digitalWrite(L_EXT, OFF);
   }
 }
