@@ -49,7 +49,7 @@
 // interval to wait before changing lights state (to avoid continuous on/off)
 #define INTERVALCR 30000
 
-#define READINT 5000
+#define READINT 1000
 
 TSL2561 tsl(TSL2561_ADDR_FLOAT);
 
@@ -86,7 +86,7 @@ void setup()
   if (tsl.begin())
   {
     tsl.setGain(TSL2561_GAIN_16X);
-    tsl.setTiming(TSL2561_INTEGRATIONTIME_13MS);
+    tsl.setTiming(TSL2561_INTEGRATIONTIME_101MS);
     DEBUG("Sensor...");
   }
   else
