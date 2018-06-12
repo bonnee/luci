@@ -44,20 +44,18 @@
 #define CROFF 110
 
 // crepuscular thresholds for external lights
-#define EXTON 640
-#define EXTOFF 620
+#define EXTON 100
+#define EXTOFF 110
 
 // interval to wait before changing lights state (to avoid continuous on/off)
 #define SWITCH_INT 30000
 
+// Time to wait between light readings
 #define READ_INT 1000
 
 // Logic toggles
 bool tog_stairs = false,
      tog_garden = false;
-
-bool wait1 = false, wait2 = false;
-unsigned long waitstart1, waitstart2, read_wait;
 
 Sensor lux_sens(READ_INT);
 Threshold stair_t(CROFF, CRON, SWITCH_INT);
@@ -84,7 +82,6 @@ void setup()
   lux_sens.setup();
 
   DEBUG("Done.\n");
-  read_wait = millis();
 }
 
 void loop()
@@ -99,8 +96,8 @@ void loop()
 
   unsigned long now = millis();
 
-  uint16_t lux = lux_sens.loop(now);
-  if (lux)
+  int lux = lux_sens.loop(now);
+  if (lux >= 0)
   {
     if (Serial)
     {
