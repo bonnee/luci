@@ -11,7 +11,8 @@
  *      This is a digital sensor conversion of the system.
 */
 
-#include "TSL2561.h"
+#include "sensor.h"
+#include "threshold.h"
 
 #define DEBUG(x)     \
   if (Serial)        \
@@ -47,11 +48,9 @@
 #define EXTOFF 620
 
 // interval to wait before changing lights state (to avoid continuous on/off)
-#define INTERVALCR 30000
+#define SWITCH_INT 30000
 
-#define READINT 1000
-
-TSL2561 tsl(TSL2561_ADDR_FLOAT);
+#define READ_INT 1000
 
 // Logic toggles
 bool tog_stairs = false,
@@ -59,6 +58,10 @@ bool tog_stairs = false,
 
 bool wait1 = false, wait2 = false;
 unsigned long waitstart1, waitstart2, read_wait;
+
+Sensor lux_sens(READ_INT);
+Threshold stair_t(CROFF, CRON, SWITCH_INT);
+Threshold ext_t(EXTOFF, EXTON, SWITCH_INT);
 
 void setup()
 {
@@ -78,18 +81,7 @@ void setup()
   pinMode(L_EXT, OUTPUT);
   DEBUG("I/O...");
 
-  if (tsl.begin())
-  {
-    tsl.setGain(TSL2561_GAIN_16X);
-    tsl.setTiming(TSL2561_INTEGRATIONTIME_101MS);
-    DEBUG("Sensor...");
-  }
-  else
-  {
-    DEBUG("Sensor Error.");
-    while (1)
-      ;
-  }
+  lux_sens.setup();
 
   DEBUG("Done.\n");
   read_wait = millis();
@@ -107,11 +99,9 @@ void loop()
 
   unsigned long now = millis();
 
-  if (now - read_wait >= READINT)
+  uint16_t lux = lux_sens.loop(now);
+  if (lux)
   {
-    read_wait = now;
-    uint16_t lux = tsl.getLuminosity(TSL2561_VISIBLE);
-
     if (Serial)
     {
       DEBUG("Lux: ");
@@ -119,61 +109,8 @@ void loop()
       DEBUG("\n");
     }
 
-    // Too much light
-    if (lux >= CROFF)
-    {
-      if (!wait1)
-      {
-        waitstart1 = now;
-        wait1 = true;
-      }
-      else if (now - waitstart1 >= INTERVALCR && wait1)
-      {
-        tog_stairs = false;
-        wait1 = false;
-      }
-    }
-    // It's dark!
-    else if (lux <= CRON)
-    {
-      if (!wait1)
-      {
-        waitstart1 = now;
-        wait1 = true;
-      }
-      else if (now - waitstart1 >= INTERVALCR && wait1)
-      {
-        tog_stairs = true;
-        wait1 = false;
-      }
-    }
-
-    if (lux >= EXTOFF)
-    {
-      if (!wait2)
-      {
-        waitstart2 = now;
-        wait2 = true;
-      }
-      else if (now - waitstart2 >= INTERVALCR && wait2)
-      {
-        tog_garden = false;
-        wait2 = false;
-      }
-    }
-    else if (lux <= EXTON)
-    {
-      if (!wait2)
-      {
-        waitstart2 = now;
-        wait2 = true;
-      }
-      else if (now - waitstart2 >= INTERVALCR && wait2)
-      {
-        tog_garden = true;
-        wait2 = false;
-      }
-    }
+    tog_stairs = stair_t.loop(lux, now);
+    tog_garden = ext_t.loop(lux, now);
   }
 
   // Don't try to understand the rest of this program
