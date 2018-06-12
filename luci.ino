@@ -29,7 +29,7 @@
 #define IR_GROUND 3
 
 // outputs
-#define L_UNUSED_0 6
+#define L_UNUSED_0 6 // Currently unused relays
 #define L_UNUSED_1 7
 #define L_ENTRANCE_R 8  // rear entrance lights
 #define L_GROUND 9      // ground floor lights
@@ -53,17 +53,12 @@
 
 TSL2561 tsl(TSL2561_ADDR_FLOAT);
 
-uint16_t lux;
-
-/* Declare logic vars
-    sw_ = switch
-    ir_ = ir sensor
-    tog_ = logic toggle */
-bool sw_auto, sw_season, ir_rear, ir_ground;
-bool tog_stairs = false, tog_garden = false;
+// Logic toggles
+bool tog_stairs = false,
+     tog_garden = false;
 
 bool wait1 = false, wait2 = false;
-unsigned long waitstart1, waitstart2, readWait, now;
+unsigned long waitstart1, waitstart2, read_wait;
 
 void setup()
 {
@@ -97,21 +92,25 @@ void setup()
   }
 
   DEBUG("Done.\n");
-  readWait = millis();
+  read_wait = millis();
 }
 
 void loop()
 {
-  now = millis();
-  sw_auto = digitalRead(SW_AUTO);
-  sw_season = digitalRead(SW_SEASON);
-  ir_rear = digitalRead(IR_REAR);
-  ir_ground = digitalRead(IR_GROUND);
+  /* Declare logic vars
+    sw_ = switch
+    ir_ = ir sensor */
+  bool sw_auto = digitalRead(SW_AUTO),
+       sw_season = digitalRead(SW_SEASON),
+       ir_rear = digitalRead(IR_REAR),
+       ir_ground = digitalRead(IR_GROUND);
 
-  if (now - readWait >= READINT)
+  unsigned long now = millis();
+
+  if (now - read_wait >= READINT)
   {
-    readWait = now;
-    lux = tsl.getLuminosity(TSL2561_VISIBLE);
+    read_wait = now;
+    uint16_t lux = tsl.getLuminosity(TSL2561_VISIBLE);
 
     if (Serial)
     {
@@ -120,7 +119,7 @@ void loop()
       DEBUG("\n");
     }
 
-    // checks the crepuscular thresholds for the corridor and "starts" the timer to change state
+    // Too much light
     if (lux >= CROFF)
     {
       if (!wait1)
@@ -134,6 +133,7 @@ void loop()
         wait1 = false;
       }
     }
+    // It's dark!
     else if (lux <= CRON)
     {
       if (!wait1)
@@ -148,7 +148,6 @@ void loop()
       }
     }
 
-    // checks the crepuscular thresholds for the garden and "starts" the timer to change state
     if (lux >= EXTOFF)
     {
       if (!wait2)
@@ -177,7 +176,7 @@ void loop()
     }
   }
 
-  // WARNING: Don't try to understand this
+  // Don't try to understand the rest of this program
   if (!sw_auto || ir_rear || (ir_ground && !sw_season) || (sw_season && tog_stairs))
   {
     digitalWrite(L_ENTRANCE_R, ON);
