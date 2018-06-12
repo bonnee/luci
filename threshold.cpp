@@ -6,16 +6,15 @@ Threshold::Threshold(int low, int high, int wait)
   high_end = high;
   switch_delay = wait;
   waiting = false;
+  toggle = false;
 }
 
 bool Threshold::loop(int lux, unsigned long now)
 {
-  static bool tog;
-
   if (!waiting)
   {
     // start the timer if outside range and wrong-switched
-    if ((lux <= low_end && !tog) || (tog && high_end <= lux))
+    if ((lux <= low_end && !toggle) || (toggle && high_end <= lux))
     {
       waiting = true;
       wait_start = now;
@@ -27,9 +26,9 @@ bool Threshold::loop(int lux, unsigned long now)
     waiting = false;
 
     if (lux <= low_end)
-      tog = true;
+      toggle = true;
     if (lux >= high_end)
-      tog = false;
+      toggle = false;
   }
-  return tog;
+  return toggle;
 }

@@ -4,6 +4,7 @@
 class Threshold
 {
   int low_end, high_end;
+  bool toggle;
 
   int switch_delay;
   unsigned long wait_start;
