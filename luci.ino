@@ -81,7 +81,7 @@ void setup()
   if (tsl.begin())
   {
     tsl.setGain(TSL2561_GAIN_16X);
-    tsl.setTiming(TSL2561_INTEGRATIONTIME_101MS);
+    tsl.setTiming(TSL2561_INTEGRATIONTIME_13MS);
     DEBUG("Sensor...");
   }
   else
