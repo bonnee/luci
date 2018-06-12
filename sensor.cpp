@@ -7,10 +7,10 @@ Sensor::Sensor(int interval)
 
 void Sensor::setup()
 {
-  if (tsl.begin())
+  if (sensor.begin())
   {
-    tsl.setGain(TSL2561_GAIN_16X);
-    tsl.setTiming(TSL2561_INTEGRATIONTIME_101MS);
+    sensor.setGain(TSL2561_GAIN_16X);
+    sensor.setTiming(TSL2561_INTEGRATIONTIME_101MS);
   }
   else
   {
@@ -23,7 +23,7 @@ uint16_t Sensor::loop(unsigned long now)
   if (now - wait_start >= read_int)
   {
     wait_start = now;
-    return tsl.getLuminosity(TSL2561_VISIBLE);
+    return sensor.getLuminosity(TSL2561_VISIBLE);
   }
   return -1;
 }

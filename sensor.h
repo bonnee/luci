@@ -5,7 +5,7 @@
 class Sensor
 {
   int read_int;
-  TSL2561 tsl = TSL2561(TSL2561_ADDR_FLOAT);
+  TSL2561 sensor = TSL2561(TSL2561_ADDR_FLOAT);
 
   unsigned long wait_start;
   bool waiting;
