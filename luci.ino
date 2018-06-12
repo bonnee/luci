@@ -64,8 +64,8 @@ Threshold ext_t(EXTOFF, EXTON, SWITCH_INT);
 void setup()
 {
   Serial.begin(9600);
-  DEBUG("Starting...");
 
+  DEBUG("I/O...");
   pinMode(SW_AUTO, INPUT_PULLUP);
   pinMode(SW_SEASON, INPUT_PULLUP);
   pinMode(IR_REAR, INPUT_PULLUP);
@@ -77,8 +77,8 @@ void setup()
   pinMode(PW_IR_REAR, OUTPUT);
   pinMode(PW_IR_GROUND, OUTPUT);
   pinMode(L_EXT, OUTPUT);
-  DEBUG("I/O...");
 
+  DEBUG("Sensor...");
   lux_sens.setup();
 
   DEBUG("Done.\n");
