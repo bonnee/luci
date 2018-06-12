@@ -4,15 +4,15 @@
 
 class Sensor
 {
-  int read_int;
   TSL2561 sensor = TSL2561(TSL2561_ADDR_FLOAT);
 
+  int read_int;
   unsigned long wait_start;
   bool waiting;
 
 public:
   Sensor(int interval);
   void setup();
-  uint16_t loop(unsigned long now);
+  int loop(unsigned long now);
 };
 #endif

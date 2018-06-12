@@ -16,6 +16,7 @@ bool Threshold::loop(int lux, unsigned long now)
     // start the timer if outside range and wrong-switched
     if ((lux <= low_end && !toggle) || (toggle && high_end <= lux))
     {
+      //Serial.println("Starting timer.");
       waiting = true;
       wait_start = now;
     }
