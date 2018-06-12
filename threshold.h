@@ -3,15 +3,15 @@
 
 class Threshold
 {
-	int low_end, high_end;
+  int low_end, high_end;
 
-	int switch_delay;
-	unsigned long wait_start;
-	bool waiting;
+  int switch_delay;
+  unsigned long wait_start;
+  bool waiting;
 
-  public:
-	Threshold(int low, int high, int wait);
-	void setup();
-	bool loop(int lux, unsigned long now);
+public:
+  Threshold(int low, int high, int wait);
+  void setup();
+  bool loop(int lux, unsigned long now);
 };
 #endif
