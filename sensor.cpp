@@ -1,8 +1,8 @@
 #include "sensor.h"
 
-Sensor::Sensor(int interval)
+Sensor::Sensor(int read_interval)
 {
-  read_int = interval;
+  interval = read_interval;
 }
 
 void Sensor::setup()
@@ -20,7 +20,7 @@ void Sensor::setup()
 
 int Sensor::loop(unsigned long now)
 {
-  if (now - wait_start >= read_int)
+  if (now - wait_start >= interval)
   {
     wait_start = now;
     return (int)sensor.getLuminosity(TSL2561_VISIBLE);
