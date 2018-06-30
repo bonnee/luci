@@ -1,18 +1,19 @@
 #ifndef THRESHOLD_H
 #include <stdio.h>
+#include <Arduino.h>
 
 class Threshold
 {
-  int low_end, high_end;
-  bool toggle;
+  int low, high;
+  bool toggle = false;
 
-  int switch_delay;
-  unsigned long wait_start;
-  bool waiting;
+  int wait;
+  unsigned long prev_time;
+  bool waiting = false;
 
 public:
-  Threshold(int low, int high, int wait);
-  void setup();
-  bool loop(int lux, unsigned long now);
+  Threshold(int low, int high, int wait) : low(low), high(high), wait(wait) {}
+  void loop(int lux);
+  bool toggled();
 };
 #endif

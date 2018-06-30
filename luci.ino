@@ -57,7 +57,7 @@
 bool tog_stairs = false,
      tog_garden = false;
 
-Sensor lux_sens(READ_INT);
+Sensor sensor(READ_INT);
 Threshold stair_t(CROFF, CRON, SWITCH_INT);
 Threshold ext_t(EXTOFF, EXTON, SWITCH_INT);
 
@@ -79,7 +79,12 @@ void setup()
   pinMode(L_EXT, OUTPUT);
 
   DEBUG("Sensor...");
-  lux_sens.setup();
+  if (!sensor.setup())
+  {
+    DEBUG("ERROR.");
+    while (true)
+      ;
+  }
 
   DEBUG("Done.\n");
 }
@@ -94,20 +99,22 @@ void loop()
        ir_rear = digitalRead(IR_REAR),
        ir_ground = digitalRead(IR_GROUND);
 
-  unsigned long now = millis();
+  sensor.loop();
 
-  int lux = lux_sens.loop(now);
-  if (lux >= 0)
+  if (sensor.get_lux() >= 0)
   {
     if (Serial)
     {
       DEBUG("Lux: ");
-      DEBUG(lux);
+      DEBUG(sensor.get_lux());
       DEBUG("\n");
     }
 
-    tog_stairs = stair_t.loop(lux, now);
-    tog_garden = ext_t.loop(lux, now);
+    stair_t.loop(sensor.get_lux());
+    ext_t.loop(sensor.get_lux());
+
+    tog_stairs = stair_t.toggled();
+    tog_garden = ext_t.toggled();
   }
 
   // Don't try to understand the rest of this program

@@ -1,35 +1,32 @@
 #include "threshold.h"
 
-Threshold::Threshold(int low, int high, int wait)
+void Threshold::loop(int lux)
 {
-  low_end = low;
-  high_end = high;
-  switch_delay = wait;
-  waiting = false;
-  toggle = false;
-}
+  unsigned long now = millis();
 
-bool Threshold::loop(int lux, unsigned long now)
-{
   if (!waiting)
   {
     // start the timer if outside range and wrong-switched
-    if ((lux <= low_end && !toggle) || (toggle && high_end <= lux))
+    if ((lux <= low && !toggle) || (toggle && high <= lux))
     {
-      //Serial.println("Starting timer.");
       waiting = true;
-      wait_start = now;
+      prev_time = now;
     }
   }
-  // tofggle if timer expired
-  if (waiting && (now - wait_start >= switch_delay))
+
+  // toggle if timer expired
+  if (waiting && (now - prev_time >= delay))
   {
     waiting = false;
 
-    if (lux <= low_end)
+    if (lux <= low)
       toggle = true;
-    if (lux >= high_end)
+    if (lux >= high)
       toggle = false;
   }
+}
+
+bool Threshold::toggled()
+{
   return toggle;
 }

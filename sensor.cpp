@@ -5,25 +5,28 @@ Sensor::Sensor(int read_interval)
   interval = read_interval;
 }
 
-void Sensor::setup()
+int Sensor::setup()
 {
   if (sensor.begin())
   {
     sensor.setGain(TSL2561_GAIN_16X);
     sensor.setTiming(TSL2561_INTEGRATIONTIME_13MS);
+    return 0;
   }
-  else
+
+  return -1;
+}
+
+void Sensor::loop()
+{
+  if (millis() - wait_start >= interval)
   {
-    exit(1);
+    wait_start = millis();
+    lux = sensor.getLuminosity(TSL2561_VISIBLE);
   }
 }
 
-int Sensor::loop(unsigned long now)
+int Sensor::get_lux()
 {
-  if (now - wait_start >= interval)
-  {
-    wait_start = now;
-    return (int)sensor.getLuminosity(TSL2561_VISIBLE);
-  }
-  return -1;
+  return lux;
 }
