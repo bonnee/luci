@@ -9,7 +9,7 @@ class Sensor
 
   int lux;
 
-  int interval;
+  unsigned int interval;
   unsigned long wait_start;
   bool waiting;
 
@@ -17,6 +17,7 @@ public:
   Sensor(int read_interval);
   int setup();
   void loop();
+
   int get_lux();
 };
 #endif

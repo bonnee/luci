@@ -15,7 +15,7 @@ void Threshold::loop(int lux)
   }
 
   // toggle if timer expired
-  if (waiting && (now - prev_time >= delay))
+  if (waiting && (now - prev_time >= wait))
   {
     waiting = false;
 

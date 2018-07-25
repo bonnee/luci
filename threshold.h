@@ -7,7 +7,7 @@ class Threshold
   int low, high;
   bool toggle = false;
 
-  int wait;
+  unsigned int wait;
   unsigned long prev_time;
   bool waiting = false;
 
