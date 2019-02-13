@@ -2,10 +2,10 @@
         lights.ino: Internal and external lights control with relay output and TSL2561 digital light sensor
 
         Pinout of the TSL2561 sensor:
-            VCC: 3.3v   Orange Pin
-            GND: Ground Brown Pin
-            SCL: A5     Green Pin
-            SDA: A4     Blue Pin
+            VCC: 3.3v   White/Blue Pin
+            GND: Ground Blue Pin
+            SCL: A5     White/Green Pin
+            SDA: A4     Green Pin
 
         I wrote this software in ~2013, left it undocumented, and now it is barely understandable.
         This is a digital sensor conversion of the system.
