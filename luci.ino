@@ -1,14 +1,14 @@
 /*
- *      lights.ino: Internal and external lights control with relay output and TSL2561 digital light sensor
- *
- *      Pinout of the TSL2561 sensor:
- *          VCC: 3.3v   Orange Pin
- *          GND: Ground Brown Pin
- *          SCL: A5     Green Pin
- *          SDA: A4     Blue Pin
- *
- *      I wrote this software in ~2013, left it undocumented, and now it is barely understandable.
- *      This is a digital sensor conversion of the system.
+        lights.ino: Internal and external lights control with relay output and TSL2561 digital light sensor
+
+        Pinout of the TSL2561 sensor:
+            VCC: 3.3v   Orange Pin
+            GND: Ground Brown Pin
+            SCL: A5     Green Pin
+            SDA: A4     Blue Pin
+
+        I wrote this software in ~2013, left it undocumented, and now it is barely understandable.
+        This is a digital sensor conversion of the system.
 */
 
 #include "sensor.h"
@@ -79,11 +79,10 @@ void setup()
   pinMode(L_EXT, OUTPUT);
 
   DEBUG("Sensor...");
-  if (!sensor.setup())
+  if (sensor.setup() != 0)
   {
     DEBUG("ERROR.");
-    while (true)
-      ;
+    while (1);
   }
 
   DEBUG("Done.\n");
