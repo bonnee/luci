@@ -1,6 +1,6 @@
 #include "sensor.h"
 
-Sensor::Sensor(int read_interval)
+Sensor::Sensor(unsigned int read_interval)
 {
   interval = read_interval;
 }
@@ -26,7 +26,7 @@ void Sensor::loop()
   }
 }
 
-int Sensor::get_lux()
+unsigned int Sensor::get_lux()
 {
   return lux;
 }
