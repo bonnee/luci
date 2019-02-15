@@ -29,6 +29,7 @@ unsigned int RS485Serial::loop()
 	{
 		digitalWrite(LED_BUILTIN, HIGH);
 		char rc = sserial.read();
+		delay(1);
 		digitalWrite(LED_BUILTIN, LOW);
 
 		if (rc != endMarker)
