@@ -6,9 +6,13 @@
 #ifndef RS485SERIAL_H
 #define RS485SERIAL_H
 
-#include <stdio.h>
 #include <Arduino.h>
 #include <SoftwareSerial.h>
+
+enum
+{
+	BAUD_RATE = 9600
+};
 
 class RS485Serial
 {
@@ -19,16 +23,17 @@ class RS485Serial
 
 	char receivedChars[numChars]; // an array to store the received data
 
-private:
+  private:
 	SoftwareSerial sserial;
 	int talk_pin;
 	byte ndx;
 
-public:
+  public:
 	RS485Serial(int rx, int tx, int talk) : sserial(rx, tx), talk_pin(talk){};
-	void begin(int baud_rate);
-	int print(unsigned int value);
+	void begin();
+	void sendLux(unsigned int value);
 	unsigned int loop();
+	static unsigned int getBaud();
 };
 
 #endif

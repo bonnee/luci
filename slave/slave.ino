@@ -16,47 +16,35 @@
 #include "sensor.h"
 #include <RS485Serial.h>
 
-#define DEBUG(x)         \
-	if (Serial)          \
-	{                    \
-		Serial.print(x); \
-	}
+#define DEBUG(x) Serial.print(x);
 
 #define RX 2
 #define TX 3
 #define TALK 4
 
-#define BAUD 9600
-
 // Time to wait between light readings
 #define READ_INT 1000
 
-int last_lux = 0;
+unsigned int last_lux = 0;
 
 Sensor sensor(READ_INT);
 RS485Serial sserial(RX, TX, TALK);
 
 void setup()
 {
-	// Debug serial
-	Serial.begin(9600);
-
-	while (!Serial)
-	{
-	}
+	Serial.begin(sserial.getBaud());
 
 	DEBUG("SLAVE\n");
 	DEBUG("I/O...");
-	sserial.begin(BAUD);
+	sserial.begin();
 
-	// UNCOMMENT
-	/*DEBUG("Sensor...");
+	DEBUG("Sensor...");
 	if (sensor.setup() != 0)
 	{
 		DEBUG("ERROR.");
 		while (1)
 			;
-	}*/
+	}
 
 	DEBUG("Done.\n");
 	digitalWrite(13, LOW);
@@ -64,28 +52,31 @@ void setup()
 
 void loop()
 {
-	// UNCOMMENT
-	//sensor.loop();
-	int val = 768;
-
-	DEBUG("sending ");
-	DEBUG(val);
-	DEBUG('\n');
-
-	sserial.print(val);
-
-	delay(500);
-
-	// UNCOMMENT
-	/*if (sensor.get_lux() >= 0)
+	if (sensor.loop()) // dummyLoop()
 	{
-		int lux = sensor.get_lux();
-
+		unsigned int lux = sensor.get_lux(); //dummy_get_lux();
 		if (last_lux != lux)
 		{
-			sserial.print(lux);
+			sserial.sendLux(lux);
 			last_lux = lux;
 			DEBUG(lux);
+			DEBUG('\n');
 		}
-	}*/
+	}
+}
+
+unsigned long wait_start = 0;
+bool dummyLoop()
+{
+	if (millis() - wait_start >= 1000)
+	{
+		wait_start = millis();
+		return true;
+	}
+	return false;
+}
+
+unsigned int dummy_get_lux()
+{
+	return random(10, 65535);
 }

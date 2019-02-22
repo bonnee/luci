@@ -17,13 +17,15 @@ int Sensor::setup()
   return -1;
 }
 
-void Sensor::loop()
+bool Sensor::loop()
 {
   if (millis() - wait_start >= interval)
   {
     wait_start = millis();
     lux = sensor.getLuminosity(TSL2561_VISIBLE);
+    return true;
   }
+  return false;
 }
 
 unsigned int Sensor::get_lux()

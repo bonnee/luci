@@ -21,7 +21,6 @@
 #define RX 2
 #define TX 3
 #define TALK 4
-#define BAUD 9600
 
 // switches
 #define SW_AUTO 16   // A2
@@ -61,7 +60,7 @@ Threshold ext_t(EXTOFF, EXTON, SWITCH_INT);
 
 void setup()
 {
-	Serial.begin(9600);
+	Serial.begin(sserial.getBaud());
 
 	DEBUG("MASTER\n");
 	DEBUG("I/O...");
@@ -77,7 +76,7 @@ void setup()
 	pinMode(PW_IR_GROUND, OUTPUT);
 	pinMode(L_EXT, OUTPUT);
 
-	sserial.begin(BAUD);
+	sserial.begin();
 
 	DEBUG("Done.\n")
 }

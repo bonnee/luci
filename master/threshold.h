@@ -1,7 +1,6 @@
 #ifndef THRESHOLD_H
 #define THRESHOLD_H
 
-#include <stdio.h>
 #include <Arduino.h>
 
 class Threshold

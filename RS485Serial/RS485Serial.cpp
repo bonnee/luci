@@ -1,15 +1,15 @@
 #include "RS485Serial.h"
 
-void RS485Serial::begin(int baud_rate)
+void RS485Serial::begin()
 {
 	ndx = 0;
 
 	pinMode(talk_pin, OUTPUT);
 	pinMode(LED_BUILTIN, OUTPUT);
-	sserial.begin(baud_rate);
+	sserial.begin(BAUD_RATE);
 }
 
-int RS485Serial::print(unsigned int value)
+void RS485Serial::sendLux(unsigned int value)
 {
 	digitalWrite(LED_BUILTIN, HIGH);
 	digitalWrite(talk_pin, HIGH);
@@ -19,8 +19,6 @@ int RS485Serial::print(unsigned int value)
 
 	digitalWrite(talk_pin, LOW);
 	digitalWrite(LED_BUILTIN, LOW);
-
-	return 0;
 }
 
 unsigned int RS485Serial::loop()
@@ -49,4 +47,9 @@ unsigned int RS485Serial::loop()
 		}
 	}
 	return 0;
+}
+
+static unsigned int RS485Serial::getBaud()
+{
+	return BAUD_RATE;
 }

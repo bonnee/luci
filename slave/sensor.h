@@ -1,7 +1,6 @@
 #ifndef SENSOR_H
 #define SENSOR_H
 
-#include <stdio.h>
 #include <Arduino.h>
 #include "TSL2561.h"
 
@@ -18,7 +17,7 @@ class Sensor
 public:
   Sensor(unsigned int read_interval);
   int setup();
-  void loop();
+  bool loop();
 
   unsigned int get_lux();
 };
