@@ -65,7 +65,7 @@ void loop()
     DEBUG(lux);
     DEBUG('\n');
 
-    if (last_lux != lux)
+    //if (last_lux != lux)
     {
       sserial.sendLux(lux);
       last_lux = lux;
