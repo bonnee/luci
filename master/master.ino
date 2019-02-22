@@ -1,9 +1,16 @@
 /**
- *	luci: Internal and external lights control with relay output and TSL2561
- * 	digital light sensor
+ * luci: Internal and external lights control with relay output and TSL2561
+ * digital light sensor
  *
- *	master.ino: The logic controller code. It waits for slave to send data and
- * 	processes IO.
+ * master.ino: The logic controller code. It waits for slave to send data and
+ * processes IO.
+ *  
+ * Pinout of the serial cable
+ *  VCC: 5v Orange
+ *  GND: Brown
+ *  A:   White/Brown
+ *  B:   White/Orange
+ *  
 */
 
 #include "threshold.h"

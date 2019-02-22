@@ -9,7 +9,7 @@ int Sensor::setup()
 {
   if (sensor.begin())
   {
-    sensor.setGain(TSL2561_GAIN_16X);
+    sensor.setGain(TSL2561_GAIN_0X);
     sensor.setTiming(TSL2561_INTEGRATIONTIME_13MS);
     return 0;
   }
