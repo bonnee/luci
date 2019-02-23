@@ -11,7 +11,7 @@
 
 enum
 {
-	BAUD_RATE = 9600
+	BAUD_RATE = 1200
 };
 
 class RS485Serial

@@ -11,12 +11,12 @@
  *  SCL: A5     White/Green
  *  SDA: A4     Green
  * 
- * Pinout of the serial cable 
- *  VCC: 5v Orange
+ * Pinout of the serial cable
+ *  VCC: 5v White/Brown
  *  GND: Brown
- *  A:   White/Brown
+ *  A:   Orange
  *  B:   White/Orange
- *  
+ * 
 */
 
 #include "sensor.h"
@@ -31,8 +31,6 @@
 // Time to wait between light readings
 #define READ_INT 1000
 
-unsigned int last_lux = 0;
-
 Sensor sensor(READ_INT);
 RS485Serial sserial(RX, TX, TALK);
 
@@ -45,7 +43,7 @@ void setup()
   sserial.begin();
 
   DEBUG("Sensor...");
-  if (sensor.setup() != 0)
+  if (sensor.setup())
   {
     DEBUG("ERROR.");
     while (1)
@@ -58,34 +56,13 @@ void setup()
 
 void loop()
 {
-  if (sensor.loop()) // dummyLoop()
+  if (sensor.loop())
   {
-    unsigned int lux = sensor.get_lux(); //dummy_get_lux();
+    unsigned int lux = sensor.get_lux();
 
     DEBUG(lux);
     DEBUG('\n');
 
-    //if (last_lux != lux)
-    {
-      sserial.sendLux(lux);
-      last_lux = lux;
-
-    }
+    sserial.sendLux(lux);
   }
-}
-
-unsigned long wait_start = 0;
-bool dummyLoop()
-{
-  if (millis() - wait_start >= 1000)
-  {
-    wait_start = millis();
-    return true;
-  }
-  return false;
-}
-
-unsigned int dummy_get_lux()
-{
-  return random(10, 65535);
 }

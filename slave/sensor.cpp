@@ -11,10 +11,10 @@ int Sensor::setup()
   {
     sensor.setGain(TSL2561_GAIN_16X);
     sensor.setTiming(TSL2561_INTEGRATIONTIME_402MS);
-    return 0;
+    return 1;
   }
 
-  return -1;
+  return 0;
 }
 
 bool Sensor::loop()

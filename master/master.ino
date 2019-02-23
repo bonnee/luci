@@ -1,24 +1,24 @@
 /**
-   luci: Internal and external lights control with relay output and TSL2561
-   digital light sensor
-
-   master.ino: The logic controller code. It waits for slave to send data and
-   processes IO.
-
-   Pinout of the serial cable
-    VCC: 5v Orange
-    GND: Brown
-    A:   White/Brown
-    B:   White/Orange
-
+ * luci: Internal and external lights control with relay output and TSL2561
+ * digital light sensor
+ * 
+ * master.ino: The logic controller code. It waits for slave to send data and
+ * processes IO.
+ * 
+ * Pinout of the serial cable
+ *  VCC: 5v White/Brown
+ *  GND: Brown
+ *  A:   Orange
+ *  B:   White/Orange
+ * 
 */
 
 #include "threshold.h"
 #include <RS485Serial.h>
 
-#define DEBUG(x)         \
-  if (Serial)          \
-  {                    \
+#define DEBUG(x)     \
+  if (Serial)        \
+  {                  \
     Serial.print(x); \
   }
 
@@ -36,14 +36,14 @@
 #define IR_GROUND 15 // A1
 
 // outputs
-#define L_NIGHT 10 // Currently unused relays. !!! perimetrale notte
-#define L_UNUSED_1 11 // tavoli + pavimento+ balconi 1+2 e affressco+balconi pt
-#define L_ENTRANCE_R 5  // rear entrance lights
-#define L_GROUND 6		// ground floor lights
-#define L_STAIRS 7		// staircase lights
+#define L_NIGHT 10     // Currently unused relays. !!! perimetrale notte
+#define L_UNUSED_1 11  // tavoli + pavimento+ balconi 1+2 e affressco+balconi pt
+#define L_ENTRANCE_R 5 // rear entrance lights
+#define L_GROUND 6     // ground floor lights
+#define L_STAIRS 7     // staircase lights
 #define PW_IR_REAR 9   // rear entrance ir power
 #define PW_IR_GROUND 8 // ground floor ir power
-#define L_EXT 12		// external lights. scritta vetri + sfere + vetri
+#define L_EXT 12       // external lights. scritta vetri + sfere + vetri
 
 // crepuscular thresholds for the staircase lights
 #define CRON 110
@@ -53,16 +53,13 @@
 #define EXTON 215
 #define EXTOFF 220
 
-
 // soglie balconi tavoli ecc.
 #define BALCON 150
 #define BALCOFF 160
 
-
 // pin 10
 #define NIGHTON 20
 #define NIGHTOFF 15
-
 
 // interval to wait before changing lights state (to avoid continuous on/off)
 #define SWITCH_INT 1500
@@ -120,7 +117,7 @@ void loop()
 
   //-----------------------
 
-/*
+  /*
   Serial.print("sw_auto ");
   Serial.print(sw_auto);
 
@@ -213,9 +210,7 @@ void loop()
     digitalWrite(L_EXT, OFF);
   }
 
-
   //------- new --------
-
 
   if (sw_auto && sw_season && tog_balconi)
   {
@@ -225,7 +220,6 @@ void loop()
   {
     digitalWrite(L_UNUSED_1, OFF);
   }
-
 
   if (sw_auto && tog_balconi)
   {
