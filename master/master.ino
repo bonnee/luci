@@ -36,30 +36,30 @@
 #define IR_GROUND 15 // A1
 
 // outputs
-#define L_NIGHT 10     // Currently unused relays. !!! perimetrale notte
-#define L_UNUSED_1 11  // tavoli + pavimento+ balconi 1+2 e affressco+balconi pt
 #define L_ENTRANCE_R 5 // rear entrance lights
 #define L_GROUND 6     // ground floor lights
 #define L_STAIRS 7     // staircase lights
-#define PW_IR_REAR 9   // rear entrance ir power
 #define PW_IR_GROUND 8 // ground floor ir power
+#define PW_IR_REAR 9   // rear entrance ir power
+#define L_NIGHT 10     // perimetrale notte
+#define L_BALCON 11    // tavoli + pavimento+ balconi 1+2 e affressco + balconi pt
 #define L_EXT 12       // external lights. scritta vetri + sfere + vetri
 
 // crepuscular thresholds for the staircase lights
-#define CRON 110
-#define CROFF 120
+#define TH_STAIR_ON 110
+#define TH_STAIR_OFF 120
 
 // crepuscular thresholds for external lights
 #define EXTON 215
 #define EXTOFF 220
 
 // soglie balconi tavoli ecc.
-#define BALCON 150
-#define BALCOFF 160
+#define TH_BALCON_ON 150
+#define TH_BALCON_OFF 160
 
 // pin 10
-#define NIGHTON 20
-#define NIGHTOFF 15
+#define TH_NIGHT_ON 20
+#define TH_NIGHT_OFF 15
 
 // interval to wait before changing lights state (to avoid continuous on/off)
 #define SWITCH_INT 1500
@@ -72,12 +72,12 @@ bool tog_stairs = false,
 
 RS485Serial sserial(RX, TX, TALK);
 
-Threshold stair_t(CROFF, CRON, SWITCH_INT);
+Threshold stair_t(TH_STAIR_OFF, TH_STAIR_ON, SWITCH_INT);
 Threshold ext_t(EXTOFF, EXTON, SWITCH_INT);
 
-Threshold balconi_t(BALCOFF, BALCON, SWITCH_INT);
+Threshold balconi_t(TH_BALCON_OFF, TH_BALCON_ON, SWITCH_INT);
 
-Threshold night_t(NIGHTOFF, NIGHTON, SWITCH_INT);
+Threshold night_t(TH_NIGHT_OFF, TH_NIGHT_ON, SWITCH_INT);
 
 void setup()
 {
@@ -95,7 +95,7 @@ void setup()
   pinMode(L_STAIRS, OUTPUT);
   pinMode(PW_IR_REAR, OUTPUT);
   pinMode(PW_IR_GROUND, OUTPUT);
-  pinMode(L_UNUSED_1, OUTPUT);
+  pinMode(L_BALCON, OUTPUT);
   pinMode(L_NIGHT, OUTPUT);
   pinMode(L_EXT, OUTPUT);
 
@@ -115,29 +115,9 @@ void loop()
        ir_rear = !digitalRead(IR_REAR),
        ir_ground = !digitalRead(IR_GROUND);
 
-  //-----------------------
-
-  /*
-  Serial.print("sw_auto ");
-  Serial.print(sw_auto);
-
-  Serial.print("\tsw_season ");
-  Serial.print(sw_season);
-
-  Serial.print("\tir_interrato ");
-  Serial.print(ir_rear);
-
-  Serial.print("\tir_terra ");
-  Serial.print(ir_ground);
-
-  Serial.print("\ttog_balconi ");
-  Serial.print(tog_balconi);
-
-  DEBUG("\n");*/
-
   unsigned int lux = sserial.loop();
 
-  if (lux > 0)
+  if (lux < 65535)
   {
     DEBUG("Lux: ");
     DEBUG(lux);
@@ -214,11 +194,11 @@ void loop()
 
   if (sw_auto && sw_season && tog_balconi)
   {
-    digitalWrite(L_UNUSED_1, ON);
+    digitalWrite(L_BALCON, ON);
   }
   else
   {
-    digitalWrite(L_UNUSED_1, OFF);
+    digitalWrite(L_BALCON, OFF);
   }
 
   if (sw_auto && tog_balconi)

@@ -43,7 +43,7 @@ void setup()
   sserial.begin();
 
   DEBUG("Sensor...");
-  if (sensor.setup())
+  if (!sensor.setup())
   {
     DEBUG("ERROR.");
     while (1)

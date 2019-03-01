@@ -46,7 +46,7 @@ unsigned int RS485Serial::loop()
 			return atoi(receivedChars);
 		}
 	}
-	return 0;
+	return 65535;
 }
 
 static unsigned int RS485Serial::getBaud()
