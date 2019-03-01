@@ -61,8 +61,10 @@
 #define TH_NIGHT_ON 20
 #define TH_NIGHT_OFF 15
 
+#define AVG_LUX_TIME 60000
+
 // interval to wait before changing lights state (to avoid continuous on/off)
-#define SWITCH_INT 1500
+#define SWITCH_INT AVG_LUX_TIME * 2
 
 // Logic toggles
 bool tog_stairs = false,
@@ -104,6 +106,11 @@ void setup()
   DEBUG("Done.\n")
 }
 
+unsigned int n_measurements = 0;
+unsigned int avg_vis = 0;
+
+unsigned long prev_time = 0;
+
 void loop()
 {
   /* Declare logic vars:
@@ -115,18 +122,30 @@ void loop()
        ir_rear = !digitalRead(IR_REAR),
        ir_ground = !digitalRead(IR_GROUND);
 
-  unsigned int lux = sserial.loop();
+  unsigned int visible = sserial.loop();
 
-  if (lux < 65535)
+  if (visible < 65535)
   {
-    DEBUG("Lux: ");
-    DEBUG(lux);
-    DEBUG("\n");
+    DEBUG("Visible: ");
+    DEBUG(visible);
 
-    stair_t.loop(lux);
-    ext_t.loop(lux);
-    balconi_t.loop(lux);
-    night_t.loop(lux);
+    avg_vis = (avg_vis * n_measurements + visible) / ++n_measurements;
+
+    DEBUG("\t" + avg_vis);
+
+    if (millis() - prev_time >= AVG_LUX_TIME)
+    {
+      prev_time = millis();
+      n_measurements = 0;
+
+      stair_t.loop(avg_vis);
+      ext_t.loop(avg_vis);
+      balconi_t.loop(avg_vis);
+      night_t.loop(avg_vis);
+
+      DEBUG("\t Done");
+    }
+    DEBUG("\n");
   }
 
   tog_stairs = stair_t.toggled();
