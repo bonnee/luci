@@ -13,8 +13,8 @@ class Threshold
   bool waiting = false;
 
 public:
-  Threshold(int low, int high, unsigned long wait) : low(low), high(high), wait(wait) {}
-  void loop(int lux);
+  Threshold(unsigned int low, unsigned int high, unsigned long wait) : low(low), high(high), wait(wait) {}
+  void loop(unsigned int lux);
   bool toggled();
 };
 #endif

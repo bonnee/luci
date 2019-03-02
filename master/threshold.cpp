@@ -1,6 +1,6 @@
 #include "threshold.h"
 
-void Threshold::loop(int lux)
+void Threshold::loop(unsigned int lux)
 {
   unsigned long now = millis();
 
