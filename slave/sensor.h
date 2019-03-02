@@ -7,7 +7,7 @@
 class Sensor
 {
   const unsigned char time = 3;
-  const boolean gain = 0;
+  const boolean gain = 1;
 
   SFE_TSL2561 sensor;
 

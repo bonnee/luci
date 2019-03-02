@@ -29,8 +29,8 @@
 #define TALK 4
 
 // Integration time of the sensor
-#define LIGHT_INT 150
-#define LIGHT_DELAY 1500
+#define LIGHT_INT 1500
+#define LIGHT_DELAY 500
 
 Sensor sensor(LIGHT_INT, LIGHT_DELAY);
 RS485Serial sserial(RX, TX, TALK);
