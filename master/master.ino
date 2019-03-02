@@ -107,7 +107,7 @@ void setup()
 }
 
 unsigned int n_measurements = 0;
-unsigned int avg_vis = 0;
+float avg_vis = 0;
 
 unsigned long prev_time = 0;
 
@@ -131,12 +131,14 @@ void loop()
 
     avg_vis = (avg_vis * n_measurements + visible) / ++n_measurements;
 
-    DEBUG("\t" + avg_vis);
+    DEBUG("\t Avg: ");
+    DEBUG(avg_vis);
 
     if (millis() - prev_time >= AVG_LUX_TIME)
     {
       prev_time = millis();
       n_measurements = 0;
+      avg_vis = 0;
 
       stair_t.loop(avg_vis);
       ext_t.loop(avg_vis);
