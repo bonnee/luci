@@ -50,20 +50,20 @@
 #define L_EXT 12       // external lights. scritta vetri + sfere + vetri
 
 // crepuscular thresholds for the staircase lights
-#define TH_STAIR_ON 110
-#define TH_STAIR_OFF 120
+#define TH_STAIR_ON 170
+#define TH_STAIR_OFF 180
 
 // crepuscular thresholds for external lights
-#define EXTON 215
-#define EXTOFF 220
+#define EXTON 200
+#define EXTOFF 210
 
 // soglie balconi tavoli ecc.
-#define TH_BALCON_ON 150
-#define TH_BALCON_OFF 160
+#define TH_BALCON_ON 140
+#define TH_BALCON_OFF 150
 
 // pin 10
 #define TH_NIGHT_ON 20
-#define TH_NIGHT_OFF 15
+#define TH_NIGHT_OFF 25
 
 #define AVG_LUX_TIME 60000
 
@@ -137,19 +137,21 @@ void loop()
 
     avg_lux = (avg_lux * n_measurements + lux) / ++n_measurements;
 
+    DEBUG("\t Avg: ");
+    DEBUG(avg_lux);
+
     if (millis() - prev_time >= AVG_LUX_TIME)
     {
       if (avg_lux == 0)
       {
-        avg_lux = EEPROMwl.get(0, avg_lux);
+        Serial.print("\tRead EEPROM ");
+        avg_lux = ceil(EEPROMwl.get(0, avg_lux));
+        Serial.println(avg_lux);
       }
       else
       {
         EEPROMwl.put(0, avg_lux);
       }
-
-      DEBUG("\t Avg: ");
-      DEBUG(avg_lux);
 
       stair_t.loop(avg_lux);
       ext_t.loop(avg_lux);
