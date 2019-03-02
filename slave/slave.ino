@@ -58,7 +58,7 @@ void loop()
 {
   if (sensor.loop())
   {
-    unsigned int lux = sensor.get_lux();
+    double lux = sensor.getLux();
 
     DEBUG(lux);
     DEBUG('\n');

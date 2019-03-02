@@ -2,23 +2,27 @@
 #define SENSOR_H
 
 #include <Arduino.h>
-#include "TSL2561.h"
+#include <SparkFunTSL2561.h>
 
 class Sensor
 {
-  TSL2561 sensor = TSL2561(TSL2561_ADDR_FLOAT);
+  const unsigned char time = 3;
+  const boolean gain = true;
 
-  unsigned int lux;
+  SFE_TSL2561 sensor;
 
-  unsigned int interval;
+  unsigned int data0, data1;
+
+  double lux;
+
+  unsigned int int_time;
   unsigned long wait_start;
-  bool waiting;
 
 public:
-  Sensor(unsigned int read_interval);
+  Sensor(unsigned int int_time) : int_time(int_time){};
   int setup();
-  bool loop();
+  boolean loop();
 
-  unsigned int get_lux();
+  double getLux();
 };
 #endif
