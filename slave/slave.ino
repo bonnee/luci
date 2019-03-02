@@ -28,10 +28,11 @@
 #define TX 3
 #define TALK 4
 
-// Time to wait between light readings
-#define READ_INT 1000
+// Integration time of the sensor
+#define LIGHT_INT 150
+#define LIGHT_DELAY 1500
 
-Sensor sensor(READ_INT);
+Sensor sensor(LIGHT_INT, LIGHT_DELAY);
 RS485Serial sserial(RX, TX, TALK);
 
 void setup()
@@ -58,7 +59,7 @@ void loop()
 {
   if (sensor.loop())
   {
-    double lux = sensor.getLux();
+    unsigned int lux = round(sensor.getLux());
 
     DEBUG(lux);
     DEBUG('\n');

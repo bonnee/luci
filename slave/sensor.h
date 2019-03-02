@@ -7,20 +7,23 @@
 class Sensor
 {
   const unsigned char time = 3;
-  const boolean gain = true;
+  const boolean gain = 0;
 
   SFE_TSL2561 sensor;
 
-  unsigned int data0, data1;
-
   double lux;
 
+  unsigned int wait_time;
   unsigned int int_time;
+
+  boolean waiting = true;
+
+  unsigned long int_start;
   unsigned long wait_start;
 
 public:
-  Sensor(unsigned int int_time) : int_time(int_time){};
-  int setup();
+  Sensor(unsigned int int_time, unsigned int wait_time) : int_time(int_time), wait_time(wait_time){};
+  boolean setup();
   boolean loop();
 
   double getLux();

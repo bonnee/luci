@@ -1,40 +1,61 @@
 #include "sensor.h"
 
-int Sensor::setup()
+boolean Sensor::setup()
 {
+  Serial.println(int_time);
   if (sensor.begin())
   {
-    sensor.setTiming(gain, time, int_time);
+    unsigned int t;
+    sensor.setTiming(gain, time, t);
     sensor.setPowerUp();
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 boolean Sensor::loop()
 {
-  double tmp_lux = 0;
+  double tmp_lux;
   boolean good = false;
 
-  if (millis() - wait_start >= int_time)
-  {
-    sensor.manualStop();
-
-    if (sensor.getData(data0, data1))
-    {
-      good = sensor.getLux(gain, int_time, data0, data1, tmp_lux);
-    }
-
-    wait_start = millis();
+  if (waiting && millis() - wait_start >= wait_time) {
+    waiting = false;
+    
+    int_start = millis();
     sensor.manualStart();
   }
 
-  if (good)
+  if (!waiting && millis() - int_start >= int_time)
   {
-    lux = tmp_lux;
-    return true;
+    sensor.manualStop();
+    unsigned int real_time=millis() - int_start;
+
+    unsigned int data0, data1;
+
+    if (sensor.getData(data0, data1))
+    {
+      Serial.print(data0);
+      Serial.print('\t');
+      Serial.println(data1);
+      
+      good = sensor.getLux(gain, real_time, data0, data1, tmp_lux);
+
+    } else {
+      byte error = sensor.getError();
+    }
+
+    waiting = true;
+    wait_start = millis();
+
+    if (good)
+    {
+      lux = tmp_lux;
+      return true;
+    }
   }
+
+
 
   return false;
 }
