@@ -1,34 +1,45 @@
 #include "sensor.h"
 
-Sensor::Sensor(unsigned int read_interval)
-{
-  interval = read_interval;
-}
-
 int Sensor::setup()
 {
   if (sensor.begin())
   {
-    sensor.setGain(TSL2561_GAIN_0X);
-    sensor.setTiming(TSL2561_INTEGRATIONTIME_13MS);
+    sensor.setTiming(gain, time, int_time);
+    sensor.setPowerUp();
     return 1;
   }
 
   return 0;
 }
 
-bool Sensor::loop()
+boolean Sensor::loop()
 {
-  if (millis() - wait_start >= interval)
+  double tmp_lux = 0;
+  boolean good = false;
+
+  if (millis() - wait_start >= int_time)
   {
+    sensor.manualStop();
+
+    if (sensor.getData(data0, data1))
+    {
+      good = sensor.getLux(gain, int_time, data0, data1, tmp_lux);
+    }
+
     wait_start = millis();
-    lux = sensor.getLuminosity(TSL2561_VISIBLE);
+    sensor.manualStart();
+  }
+
+  if (good)
+  {
+    lux = tmp_lux;
     return true;
   }
+
   return false;
 }
 
-unsigned int Sensor::get_lux()
+double Sensor::getLux()
 {
   return lux;
 }
