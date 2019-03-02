@@ -19,9 +19,10 @@ boolean Sensor::loop()
   double tmp_lux;
   boolean good = false;
 
-  if (waiting && millis() - wait_start >= wait_time) {
+  if (waiting && millis() - wait_start >= wait_time)
+  {
     waiting = false;
-    
+
     int_start = millis();
     sensor.manualStart();
   }
@@ -29,7 +30,7 @@ boolean Sensor::loop()
   if (!waiting && millis() - int_start >= int_time)
   {
     sensor.manualStop();
-    unsigned int real_time=millis() - int_start;
+    unsigned int real_time = millis() - int_start;
 
     unsigned int data0, data1;
 
@@ -38,10 +39,11 @@ boolean Sensor::loop()
       Serial.print(data0);
       Serial.print('\t');
       Serial.println(data1);
-      
-      good = sensor.getLux(gain, real_time, data0, data1, tmp_lux);
 
-    } else {
+      good = sensor.getLux(gain, real_time, data0, data1, tmp_lux);
+    }
+    else
+    {
       byte error = sensor.getError();
     }
 
@@ -54,8 +56,6 @@ boolean Sensor::loop()
       return true;
     }
   }
-
-
 
   return false;
 }

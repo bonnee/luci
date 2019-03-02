@@ -13,6 +13,7 @@
  * 
 */
 
+#include <EEPROMWearLevel.h>
 #include "threshold.h"
 #include <RS485Serial.h>
 
@@ -24,6 +25,9 @@
 
 #define ON LOW
 #define OFF HIGH
+
+#define EEPROM_LAYOUT_VERSION 0
+#define AMOUNT_OF_INDEXES 2
 
 #define RX 2
 #define TX 3
@@ -72,6 +76,11 @@ bool tog_stairs = false,
      tog_balconi = false,
      tog_night = false;
 
+unsigned int n_measurements = 0;
+float avg_lux = 0;
+
+unsigned long prev_time = 0;
+
 RS485Serial sserial(RX, TX, TALK);
 
 Threshold stair_t(TH_STAIR_OFF, TH_STAIR_ON, SWITCH_INT);
@@ -103,13 +112,10 @@ void setup()
 
   sserial.begin();
 
-  DEBUG("Done.\n")
+  EEPROMwl.begin(EEPROM_LAYOUT_VERSION, 1);
+
+  DEBUG("Done.\n");
 }
-
-unsigned int n_measurements = 0;
-float avg_vis = 0;
-
-unsigned long prev_time = 0;
 
 void loop()
 {
@@ -122,28 +128,37 @@ void loop()
        ir_rear = !digitalRead(IR_REAR),
        ir_ground = !digitalRead(IR_GROUND);
 
-  unsigned int visible = sserial.loop();
+  unsigned int lux = sserial.loop();
 
-  if (visible < 65535)
+  if (lux < 65535)
   {
-    DEBUG("Visible: ");
-    DEBUG(visible);
+    DEBUG("Lux: ");
+    DEBUG(lux);
 
-    avg_vis = (avg_vis * n_measurements + visible) / ++n_measurements;
-
-    DEBUG("\t Avg: ");
-    DEBUG(avg_vis);
+    avg_lux = (avg_lux * n_measurements + lux) / ++n_measurements;
 
     if (millis() - prev_time >= AVG_LUX_TIME)
     {
+      if (avg_lux == 0)
+      {
+        avg_lux = EEPROMwl.get(0, avg_lux);
+      }
+      else
+      {
+        EEPROMwl.put(0, avg_lux);
+      }
+
+      DEBUG("\t Avg: ");
+      DEBUG(avg_lux);
+
+      stair_t.loop(avg_lux);
+      ext_t.loop(avg_lux);
+      balconi_t.loop(avg_lux);
+      night_t.loop(avg_lux);
+
       prev_time = millis();
       n_measurements = 0;
-      avg_vis = 0;
-
-      stair_t.loop(avg_vis);
-      ext_t.loop(avg_vis);
-      balconi_t.loop(avg_vis);
-      night_t.loop(avg_vis);
+      avg_lux = 0;
 
       DEBUG("\t Done");
     }
