@@ -50,12 +50,12 @@
 #define L_EXT 12       // external lights. scritta vetri + sfere + vetri
 
 // crepuscular thresholds for the staircase lights
-#define TH_STAIR_ON 170
-#define TH_STAIR_OFF 180
+#define TH_STAIR_ON 1400
+#define TH_STAIR_OFF 1440
 
 // crepuscular thresholds for external lights
-#define EXTON 200
-#define EXTOFF 210
+#define EXTON 2300
+#define EXTOFF 2340
 
 // soglie balconi tavoli ecc.
 #define TH_BALCON_ON 140
@@ -65,10 +65,10 @@
 #define TH_NIGHT_ON 20
 #define TH_NIGHT_OFF 25
 
-#define AVG_LUX_TIME 60000
+#define AVG_LUX_TIME 20000
 
 // interval to wait before changing lights state (to avoid continuous on/off)
-#define SWITCH_INT AVG_LUX_TIME * 2
+#define SWITCH_INT AVG_LUX_TIME + 1000
 
 // Logic toggles
 bool tog_stairs = false,
@@ -77,7 +77,7 @@ bool tog_stairs = false,
      tog_night = false;
 
 unsigned int n_measurements = 0;
-float avg_lux = 0;
+float tmp_lux = 0, avg_lux = 0;
 
 unsigned long prev_time = 0;
 
@@ -85,9 +85,7 @@ RS485Serial sserial(RX, TX, TALK);
 
 Threshold stair_t(TH_STAIR_OFF, TH_STAIR_ON, SWITCH_INT);
 Threshold ext_t(EXTOFF, EXTON, SWITCH_INT);
-
 Threshold balconi_t(TH_BALCON_OFF, TH_BALCON_ON, SWITCH_INT);
-
 Threshold night_t(TH_NIGHT_OFF, TH_NIGHT_ON, SWITCH_INT);
 
 void setup()
@@ -135,42 +133,43 @@ void loop()
     DEBUG("Lux: ");
     DEBUG(lux);
 
-    avg_lux = (avg_lux * n_measurements + lux) / ++n_measurements;
+    tmp_lux = (tmp_lux * n_measurements + lux) / ++n_measurements;
 
     DEBUG("\t Avg: ");
-    DEBUG(avg_lux);
-
-    if (millis() - prev_time >= AVG_LUX_TIME)
-    {
-      if (avg_lux == 0)
-      {
-        Serial.print("\tRead EEPROM ");
-        avg_lux = ceil(EEPROMwl.get(0, avg_lux));
-        Serial.println(avg_lux);
-      }
-      else
-      {
-        EEPROMwl.put(0, avg_lux);
-      }
-
-      stair_t.loop(avg_lux);
-      ext_t.loop(avg_lux);
-      balconi_t.loop(avg_lux);
-      night_t.loop(avg_lux);
-
-      prev_time = millis();
-      n_measurements = 0;
-      avg_lux = 0;
-
-      DEBUG("\t Done");
-    }
+    DEBUG(tmp_lux);
     DEBUG("\n");
   }
 
-  tog_stairs = stair_t.toggled();
-  tog_garden = ext_t.toggled();
-  tog_balconi = balconi_t.toggled();
-  tog_night = night_t.toggled();
+  if (millis() - prev_time >= AVG_LUX_TIME)
+  {
+    avg_lux = tmp_lux;
+    if (avg_lux == 0)
+    {
+      Serial.print("\tRead EEPROM ");
+      avg_lux = ceil(EEPROMwl.get(0, avg_lux));
+      Serial.println(avg_lux);
+    }
+    else
+    {
+      EEPROMwl.put(0, avg_lux);
+    }
+
+    stair_t.loop(avg_lux);
+    ext_t.loop(avg_lux);
+    balconi_t.loop(avg_lux);
+    night_t.loop(avg_lux);
+
+    prev_time = millis();
+    n_measurements = 0;
+    tmp_lux = 0;
+
+    DEBUG("\t Done\n");
+  }
+
+  tog_stairs = stair_t.toggled(avg_lux);
+  tog_garden = ext_t.toggled(avg_lux);
+  tog_balconi = balconi_t.toggled(avg_lux);
+  tog_night = night_t.toggled(avg_lux);
 
   // Don't try to understand the rest of this program
 
@@ -239,7 +238,7 @@ void loop()
     digitalWrite(L_BALCON, OFF);
   }
 
-  if (sw_auto && tog_balconi)
+  if (sw_auto && tog_night)
   {
     digitalWrite(L_NIGHT, ON);
   }

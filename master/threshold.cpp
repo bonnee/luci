@@ -13,6 +13,11 @@ void Threshold::loop(unsigned int lux)
       prev_time = now;
     }
   }
+}
+
+boolean Threshold::toggled(unsigned int lux)
+{
+  unsigned long now = millis();
 
   // toggle if timer expired
   if (waiting && (now - prev_time >= wait))
@@ -24,9 +29,6 @@ void Threshold::loop(unsigned int lux)
     if (lux >= high)
       toggle = false;
   }
-}
 
-bool Threshold::toggled()
-{
   return toggle;
 }

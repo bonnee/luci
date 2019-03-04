@@ -10,11 +10,11 @@ class Threshold
 
   unsigned long wait;
   unsigned long prev_time;
-  bool waiting = false;
+  boolean waiting = false;
 
 public:
   Threshold(unsigned int low, unsigned int high, unsigned long wait) : low(low), high(high), wait(wait) {}
   void loop(unsigned int lux);
-  bool toggled();
+  boolean Threshold::toggled(unsigned int lux);
 };
 #endif
