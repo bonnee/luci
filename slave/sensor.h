@@ -24,7 +24,7 @@ class Sensor
 public:
   Sensor(unsigned int int_time, unsigned int wait_time) : int_time(int_time), wait_time(wait_time){};
   boolean setup();
-  boolean loop();
+  unsigned int loop();
 
   double getLux();
 };

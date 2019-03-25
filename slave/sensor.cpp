@@ -14,7 +14,7 @@ boolean Sensor::setup()
   return false;
 }
 
-boolean Sensor::loop()
+unsigned int Sensor::loop()
 {
   double tmp_lux;
   boolean good = false;
@@ -54,6 +54,10 @@ boolean Sensor::loop()
     {
       lux = tmp_lux;
       return true;
+    }
+    else
+    {
+      return 2;
     }
   }
 

@@ -13,21 +13,13 @@
  * 
 */
 
-#include <EEPROMWearLevel.h>
 #include "threshold.h"
 #include <RS485Serial.h>
 
-#define DEBUG(x)     \
-  if (Serial)        \
-  {                  \
-    Serial.print(x); \
-  }
+#define DEBUG(x) Serial.print(x);
 
 #define ON LOW
 #define OFF HIGH
-
-#define EEPROM_LAYOUT_VERSION 0
-#define AMOUNT_OF_INDEXES 2
 
 #define RX 2
 #define TX 3
@@ -110,8 +102,6 @@ void setup()
 
   sserial.begin();
 
-  EEPROMwl.begin(EEPROM_LAYOUT_VERSION, 1);
-
   DEBUG("Done.\n");
 }
 
@@ -143,16 +133,6 @@ void loop()
   if (millis() - prev_time >= AVG_LUX_TIME)
   {
     avg_lux = tmp_lux;
-    if (avg_lux == 0)
-    {
-      Serial.print("\tRead EEPROM ");
-      avg_lux = ceil(EEPROMwl.get(0, avg_lux));
-      Serial.println(avg_lux);
-    }
-    else
-    {
-      EEPROMwl.put(0, avg_lux);
-    }
 
     stair_t.loop(avg_lux);
     ext_t.loop(avg_lux);
