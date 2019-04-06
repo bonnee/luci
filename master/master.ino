@@ -42,12 +42,12 @@
 #define L_EXT 12       // external lights. scritta vetri + sfere + vetri
 
 // crepuscular thresholds for the staircase lights
-#define TH_STAIR_ON 1400
-#define TH_STAIR_OFF 1440
+#define TH_STAIR_ON 3600
+#define TH_STAIR_OFF 3650
 
 // crepuscular thresholds for external lights
-#define EXTON 2300
-#define EXTOFF 2340
+#define EXTON 5500
+#define EXTOFF 5550
 
 // soglie balconi tavoli ecc.
 #define TH_BALCON_ON 140
@@ -100,6 +100,9 @@ void setup()
   pinMode(L_NIGHT, OUTPUT);
   pinMode(L_EXT, OUTPUT);
 
+  pinMode(A5, OUTPUT);
+  digitalWrite(A5, HIGH);
+
   sserial.begin();
 
   DEBUG("Done.\n");
@@ -118,7 +121,7 @@ void loop()
 
   unsigned int lux = sserial.loop();
 
-  if (lux < 65535)
+  if (lux != 65535)
   {
     DEBUG("Lux: ");
     DEBUG(lux);
@@ -132,18 +135,29 @@ void loop()
 
   if (millis() - prev_time >= AVG_LUX_TIME)
   {
-    avg_lux = tmp_lux;
+    if (n_measurements == 0)
+    {
+      DEBUG("Resetting slave...");
+      digitalWrite(A5, LOW);
+      delay(200);
+      digitalWrite(A5, HIGH);
+      DEBUG("Reset done.\n");
+    }
+    else
+    {
+      avg_lux = tmp_lux;
 
-    stair_t.loop(avg_lux);
-    ext_t.loop(avg_lux);
-    balconi_t.loop(avg_lux);
-    night_t.loop(avg_lux);
+      stair_t.loop(avg_lux);
+      ext_t.loop(avg_lux);
+      balconi_t.loop(avg_lux);
+      night_t.loop(avg_lux);
+
+      DEBUG("\t Done\n");
+    }
 
     prev_time = millis();
     n_measurements = 0;
     tmp_lux = 0;
-
-    DEBUG("\t Done\n");
   }
 
   tog_stairs = stair_t.toggled(avg_lux);
