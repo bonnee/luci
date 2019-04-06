@@ -42,12 +42,12 @@
 #define L_EXT 12       // external lights. scritta vetri + sfere + vetri
 
 // crepuscular thresholds for the staircase lights
-#define TH_STAIR_ON 3600
-#define TH_STAIR_OFF 3650
+#define TH_STAIR_ON 900
+#define TH_STAIR_OFF 950
 
 // crepuscular thresholds for external lights
-#define EXTON 5500
-#define EXTOFF 5550
+#define EXTON 1200
+#define EXTOFF 1250
 
 // soglie balconi tavoli ecc.
 #define TH_BALCON_ON 140
