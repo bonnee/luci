@@ -46,8 +46,8 @@
 #define TH_STAIR_OFF 950
 
 // crepuscular thresholds for external lights
-#define EXTON 1200
-#define EXTOFF 1250
+#define EXTON 1300
+#define EXTOFF 1350
 
 // soglie balconi tavoli ecc.
 #define TH_BALCON_ON 140
