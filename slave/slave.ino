@@ -52,9 +52,10 @@ void setup()
   DEBUG("Sensor...");
   if (!sensor.setup())
   {
-    DEBUG("ERROR.");
     while (1)
-      ;
+    {
+      DEBUG("SENSOR ERROR\n");
+    }
   }
 
   EEPROMwl.begin(EEPROM_LAYOUT_VERSION, 1);
